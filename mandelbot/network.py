@@ -17,7 +17,6 @@ config: name (str)         - the name of the network
         password (str)     - used to identify Mandelbot with the IRC server
         realname (str)     - used to identify Mandelbot with the IRC server
         nickname (str)     - used to identify Mandelbot with the IRC server
-        flags (list)       - a list of the flags set on the Mandelbot user
         command (str)      - the command identifier Mandelbot listens for on this network
         owners (list)      - a list of IRC users who can administrate Mandelbot on this network
         users (list)       - a list of IRC users who can access Mandelbot's functions on this network

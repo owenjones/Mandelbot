@@ -1,0 +1,28 @@
+{
+    "networks" : [
+        {
+            "name"        : "A_Network",
+            "host"        : "irc.network.com",
+            "port"        : 6066,
+            "ssl"         : false,
+            "autoconnect" : true,
+            "username"    : "Mandelbot",
+            "password"    : "", // Base64 Encoded
+            "realname"    : "Mandelbot IRC bot",
+            "nickname"    : "Mandelbot",
+            "command"     : "~",
+            "owner"       : "a_user", // Same as a user, but can add and remove other users, shutdown the bot etc
+            "users"       : [], // Can access "protected" actions of the bot
+            "chans"       : [
+                {
+                    "name"  : "#python",
+                    "mode"  : false
+                },
+                {
+                    "name"  : "#myveryownchannel",
+                    "mode"  : "~@"
+                }
+            ]
+        }
+    ]
+}

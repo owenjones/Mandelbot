@@ -12,7 +12,7 @@ def run(config = None) :
     Mandelbot(config)
 
 class Mandelbot(object) :
-    config = object
+    config = None
     modules = []
     networks = []
     hooks = []
