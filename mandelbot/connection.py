@@ -92,7 +92,7 @@ class connection(object) :
             raise NoSocket
 
         try :
-            self.sock.shutdown(1)
+            self.sock.shutdown(socket.SHUT_RDWR)
             self.sock.close()
 
         except socket.error as e :
