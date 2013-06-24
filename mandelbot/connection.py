@@ -39,8 +39,8 @@ class connection(object) :
     sock = None
     server = None
     port = None
-    ssl = False
-    blocking = True
+    ssl = None
+    blocking = None
     handler = "_output"
     delimiter = "\n"
     _buffer = []
@@ -77,8 +77,9 @@ class connection(object) :
 
         try :
             self.sock.connect((self.server, self.port))
+            self.sock.setblocking(self.blocking)
+
             if not self.blocking :
-                self.sock.setblocking(0)
                 self._register()
 
         except socket.error as e :
