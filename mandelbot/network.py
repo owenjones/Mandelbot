@@ -18,9 +18,9 @@ config: name (str)         - the name of the network
         realname (str)     - used to identify Mandelbot with the IRC server
         nickname (str)     - used to identify Mandelbot with the IRC server
         command (str)      - the command identifier Mandelbot listens for on this network
-        owners (list)      - a list of IRC users who can administrate Mandelbot on this network
-        users (list)       - a list of IRC users who can access Mandelbot's functions on this network
-        chans (dict)       - a dictionary of the channels Mandelbot is connected to, along with the flags Mandelbot has on them
+        owner (str)        - the IRC user who can administrate Mandelbot on this network
+        users (list)       - a list of IRC users who can access Mandelbot's protected functions on this network
+        chans (dict)       - a dictionary of the channels Mandelbot is connected to, along with the modes Mandelbot has been granted on them
 
 Methods :
 connect                    - attempts to create a connection to the IRC server
@@ -51,9 +51,8 @@ class network(object) :
               "password": None,
               "realname": None,
               "nickname": None,
-              "flags": None,
               "command": None,
-              "owners": None,
+              "owner": None,
               "users": None,
               "chans": None}
 
