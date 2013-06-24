@@ -205,6 +205,6 @@ class _SocketConditions(Thread) :
                 time.sleep(0.1)
 
             except :
-                self.sock.close()
+                self.conn.close()
                 self.sock = False
                 raise SocketClosedUnexpectedly
