@@ -7,12 +7,12 @@
             "ssl"         : false,
             "autoconnect" : true,
             "username"    : "Mandelbot",
-            "password"    : "", // Base64 Encoded
+            "password"    : "",
             "realname"    : "Mandelbot IRC bot",
             "nickname"    : "Mandelbot",
             "command"     : "~",
-            "owner"       : "a_user", // Same as a user, but can add and remove other users, shutdown the bot etc
-            "users"       : [], // Can access "protected" actions of the bot
+            "owner"       : "a_user",
+            "users"       : [],
             "chans"       : [
                 {
                     "name"  : "#python",
