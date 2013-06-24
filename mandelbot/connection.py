@@ -198,7 +198,7 @@ class _SocketConditions(Thread) :
                 if read :
                     self.conn._receive()
 
-                if  write :
+                if write :
                     self.conn._send()
 
                 time.sleep(0.1)
