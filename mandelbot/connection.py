@@ -140,7 +140,6 @@ class connection(object) :
                 data = self.sock.recv(4096).decode("UTF-16")
 
             if not self.blocking and not data :
-                self.close()
                 raise SocketClosedUnexpectedly
 
             for part in data:
