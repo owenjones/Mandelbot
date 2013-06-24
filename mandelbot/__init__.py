@@ -18,6 +18,7 @@ class Mandelbot(object) :
     hooks = []
 
     def __init__(self, conf = None) :
+        conf = conf if conf else "config.json"
         self.config = utils.config(conf)
         self.config.load()
         self.loadModules()
@@ -34,5 +35,5 @@ class Mandelbot(object) :
 
     def network(self, match) :
         for net in self.networks :
-            if net.name == match :
+            if net.config["name"]  == match :
                 return net
