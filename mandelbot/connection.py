@@ -3,7 +3,7 @@
 Provides methods for initiating a connection and sending/receiving messages at the socket level.
 
 Properties:
-sock (object)              - the created socket object
+sock (socket)              - the created socket
 server (str)               - the server to connect to
 port (int)                 - the port to connect to on the server
 ssl (bool)                 - whether to initiate an SSL connection or not
