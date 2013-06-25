@@ -11,7 +11,20 @@ def logtime(t = None) :
     t = t if t else time.time()
     return time.strftime("%H:%M:%S", time.localtime(t))
 
-def config(file = None) :
-    with open(file, "r") as fp :
-        config = json.load(fp)
-        return config
+class config(object) :
+    file = None
+
+    def __init__(self, file = None) :
+        self.file = file
+
+        try :
+            with open(self.file, "r") as _ :
+                pass
+
+        except :
+            print("GRR")
+
+    def open(self) :
+        with open(file, "r") as fp :
+            config = json.load(fp)
+            return config
