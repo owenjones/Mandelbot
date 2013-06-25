@@ -9,7 +9,7 @@ buffer (list)              - a list of messages waiting to be sent to the IRC ne
 messages (list)            - a list of messages received from the IRC network
 
 config: name (str)         - the name of the network
-        server (str)       - the address of the IRC network server
+        host (str)         - the address of the IRC network server
         port (int)         - the port the IRC server listens on
         ssl (bool)         - whether to connect using SSL or not
         autoconnect (bool) - whether to automatically connect to the IRC server when Mandelbot is launched
@@ -32,7 +32,7 @@ join                       - joins a channel on the network
 part                       - leaves a channel on the network
 quit                       - leaves the IRC network and closes the connection to the server
 """
-
+import base64
 from . import connection, utils
 from .exceptions import *
 
@@ -40,28 +40,19 @@ class network(object) :
     c = None
     delimiter = "\r\n"
     messages = []
-    _read = False
+    config = {} # This will be populated when the network is loaded from the configuration
 
-    # This will be populated when the network is loaded from the configuration
-    config = {"name": None,
-              "server": None,
-              "port": None,
-              "autoconnect": None,
-              "username": None,
-              "password": None,
-              "realname": None,
-              "nickname": None,
-              "command": None,
-              "owner": None,
-              "users": None,
-              "chans": None}
+    def __init__(self, config) :
+        self.config = config
 
     def connect(self) :
         try :
-            self.c = connection.connection(self.config["server"], self.config["port"], False)
+            self.c = connection.connection(self.config["host"], self.config["port"], self.config["ssl"], False)
             self.c.connect()
-            utils.console("Connection established ({})".format(self.name))
-            self.c.handler = (self, "_parse")
+            utils.console("Connection established ({})".format(self.config["name"]))
+            self.c.handler = (self, "_receive")
+
+            self.identify()
 
         except InvalidConnectionInformation :
             raise InvalidServer
@@ -75,37 +66,18 @@ class network(object) :
             self.send("NICK {}".format(self.config["nickname"]))
             self.send("USER {} * * :{}".format(self.config["username"], self.config["realname"]))
 
-            if self.config["password"] :
-                self.send("PRIVMSG NICKSERV : identify {} {}".format(self.config["username"], self.config["password"]))
-
-            reply = self._wait()
-            print("REPLY"+reply)
+            #if self.config["password"] :
+            #    password = base64.b64decode(self.config["password"])
+            #    self.send("PRIVMSG NICKSERV : identify {} {}".format(self.config["username"], password))
 
         except NoSocket :
             raise NoServerConnection
 
-
-
     def send(self, message) :
         message = message + self.delimiter
+        print("SENDING: " + message)
         self.c.send(message)
 
-    def _wait(self, timeout = 10) :
-        run = 0
-        while (not self.read) and (run < timeout) :
-            sleep(0.1)
-            run += 1
-        else :
-            if self.read :
-                return self._last()
-            else :
-                raise ReceiveTimeout
-
     def _receive(self, data) :
+        print("RECEIVING: " + data)
         self.messages.append(data)
-        self._read = True
-
-    def _last(self) :
-        if self._read :
-            self._read = False
-            return self.messages.pop()

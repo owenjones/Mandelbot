@@ -5,7 +5,7 @@ __author__ = "Owen Jones"
 __license__ = "Apache 2.0"
 __copyright__ = "Copyright 2013 Owen Jones"
 
-from . import utils
+from . import utils, network
 
 def run(config = None) :
     utils.console("{} {} is launching..".format(__title__, __version__))
@@ -19,21 +19,10 @@ class Mandelbot(object) :
 
     def __init__(self, conf = None) :
         conf = conf if conf else "config.json"
-        self.config = utils.config(conf)
-        self.config.load()
-        self.loadModules()
-        self.loadNetworks()
+        config = utils.config(conf)
 
-    def loadNetworks(self) :
-        for net in self.config.networks :
+        for n in config["networks"] :
+            net = network.network(n)
             self.networks.append(net)
-            if net.autoconnect :
-                self.network(net.name).connect
-
-    def loadModules(self) :
-        pass
-
-    def network(self, match) :
-        for net in self.networks :
-            if net.config["name"]  == match :
-                return net
+            if n["autoconnect"] :
+                net.connect()
