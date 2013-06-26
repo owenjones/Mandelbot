@@ -34,4 +34,4 @@ class Mandelbot(object) :
         utils.console("Shutting down..")
         for n in self.networks :
             if n.connected :
-                n.close()
+                n.quit()

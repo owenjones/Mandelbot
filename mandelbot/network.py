@@ -74,6 +74,9 @@ class network(object) :
         except NoSocket :
             raise NoServerConnection
 
+    def quit(self) :
+        pass
+
     def send(self, message) :
         message = message + self.delimiter
         print("SENDING: " + message)
