@@ -32,7 +32,6 @@ join                       - joins a channel on the network
 part                       - leaves a channel on the network
 quit                       - leaves the IRC network and closes the connection to the server
 """
-import base64
 from . import connection, utils
 from .exceptions import *
 
@@ -66,9 +65,8 @@ class network(object) :
             self.send("NICK {}".format(self.config["nickname"]))
             self.send("USER {} * * :{}".format(self.config["username"], self.config["realname"]))
 
-            #if self.config["password"] :
-            #    password = base64.b64decode(self.config["password"])
-            #    self.send("PRIVMSG NICKSERV : identify {} {}".format(self.config["username"], password))
+            if self.config["password"] :
+                self.send("PRIVMSG NICKSERV : identify {} {}".format(self.config["username"], utils.password.decode(self.config["password"])))
 
         except NoSocket :
             raise NoServerConnection
@@ -79,5 +77,5 @@ class network(object) :
         self.c.send(message)
 
     def _receive(self, data) :
-        print("RECEIVING: " + data)
+        message = utils.message.parse(data)
         self.messages.append(data)
