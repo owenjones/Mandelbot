@@ -7,6 +7,7 @@ Properties:
 c (object)                 - the established connection to the IRC server
 buffer (list)              - a list of messages waiting to be sent to the IRC network (prevents flooding)
 messages (list)            - a list of messages received from the IRC network
+connected (bool)           - whether the network is connected or not
 
 config: name (str)         - the name of the network
         host (str)         - the address of the IRC network server
@@ -39,6 +40,7 @@ class network(object) :
     c = None
     delimiter = "\r\n"
     messages = []
+    connected = False
     config = {} # This will be populated when the network is loaded from the configuration
 
     def __init__(self, config) :
@@ -48,6 +50,7 @@ class network(object) :
         try :
             self.c = connection.connection(self.config["host"], self.config["port"], self.config["ssl"], False)
             self.c.connect()
+            self.connected = True
             utils.console("Connection established ({})".format(self.config["name"]))
             self.c.handler = (self, "_receive")
 

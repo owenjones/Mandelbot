@@ -29,3 +29,9 @@ class Mandelbot(object) :
             self.networks.append(net)
             if n["autoconnect"] :
                 net.connect()
+
+    def quit(self) :
+        utils.console("Shutting down..")
+        for n in self.networks :
+            if n.connected :
+                n.close()
