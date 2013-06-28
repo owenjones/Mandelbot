@@ -133,11 +133,13 @@ class connection(object) :
         try :
             message = ""
 
+            data = self.sock.recv(4096)
+
             try :
-                data = self.sock.recv(4096).decode("UTF-8")
+                data = data.decode("UTF-8")
 
             except UnicodeDecodeError :
-                data = self.sock.recv(4096).decode("UTF-16")
+                data = data.decode("UTF-16")
 
             if not self.blocking and not data :
                 raise SocketClosedUnexpectedly
