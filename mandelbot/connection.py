@@ -4,10 +4,12 @@ Provides methods for initiating a connection and sending/receiving messages at t
 
 Properties:
 sock (socket)              - the created socket
+thread (thread)            - the thread that checks if data can be sent and received
 server (str)               - the server to connect to
 port (int)                 - the port to connect to on the server
 ssl (bool)                 - whether to initiate an SSL connection or not
 blocking (bool)            - whether the socket should be blocking or not
+closing (bool)             - triggered when the socket is preparing to close
 handler (tuple, list)      - the handler that received responses should be passed to
                            - defined as (namespace, method); must take a single string argument
 delimiter (str)            - the delimiter for data received by from the socket, received messages are split according to this
@@ -85,7 +87,7 @@ class connection(object) :
                 self._register()
 
         except socket.error as e :
-            raise CouldNotConnect(e.strerror, e.errno)
+            raise CouldNotConnect(str(e))
 
     def close(self, graceful = False) :
         try :
@@ -99,12 +101,9 @@ class connection(object) :
                 self.closing = True
 
             else :
-                self.sock.shutdown(socket.SHUT_RD)
+                self.sock.shutdown(socket.SHUT_WR)
                 self.sock.close()
-
-        # Occurs when the call to close the socket also calls a socket shutdown
-        except OSError :
-            pass
+                self.thread.join()
 
         except socket.error as e :
             raise CouldNotDisconnect(str(e))
@@ -140,7 +139,7 @@ class connection(object) :
             self._buffer = []
 
         except socket.error as e :
-            raise CouldNotSend(e.strerror, e.errno)
+            raise CouldNotSend(str(e))
 
     def _receive(self) :
         try :
@@ -165,7 +164,7 @@ class connection(object) :
                     message = ""
 
         except socket.error as e :
-            raise CouldNotReceive(e.strerror, e.errno)
+            raise CouldNotReceive(str(e))
 
     def _handle(self, message) :
         try :
