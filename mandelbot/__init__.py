@@ -20,8 +20,10 @@ class Mandelbot(object) :
     def __init__(self, conf = None) :
         conf = conf if conf else "config.json"
         self.config = utils.config(conf)
+        self.config.load()
 
         self.loadNetworks()
+        self.loadModules()
 
     def loadNetworks(self) :
         for n in self.config.networks :
@@ -29,6 +31,9 @@ class Mandelbot(object) :
             self.networks.append(net)
             if n["autoconnect"] :
                 net.connect()
+
+    def loadModules(self) :
+        pass
 
     def quit(self) :
         utils.console("Shutting down..")
