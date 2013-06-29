@@ -98,9 +98,19 @@ class config(object) :
         except Exception as e :
             console("Saving configuration failed - {}".format(e))
 
-class message(object) :
+"""
+Message Parsing
+"""
+class parser(object) :
+    network = None
+    command = None
+    callbacks = {}
 
-    def parse(raw, command) :
+    def __init__(self, network, command) :
+        self.network = network
+        self.command = command
+
+    def parse(self, raw) :
         parsed = {}
 
         data = raw.split(" :")

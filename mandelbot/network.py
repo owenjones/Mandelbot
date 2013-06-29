@@ -9,7 +9,7 @@ TODO:
 Properties:
 c (object)                 - the established connection to the IRC server
 delimiter (str)            - the character(s) that break up messages being sent to the network
-buffer (list)              - a list of messages waiting to be sent to the IRC network (prevents flooding)
+buff (list)                - a list of messages waiting to be sent to the IRC network (prevents flooding)
 messages (list)            - a list of messages received from the IRC network
 connected (bool)           - whether the network is connected or not
 
@@ -23,7 +23,6 @@ config: name (str)         - the name of the network
         realname (str)     - used to identify Mandelbot with the IRC server
         nickname (str)     - used to identify Mandelbot with the IRC server
         command (str)      - the command identifier Mandelbot listens for on this network
-        limit (tuple)      - the limit of how many messages can be sent per second (messages, seconds)
         owner (str)        - the IRC user who can administrate Mandelbot on this network
         users (list)       - a list of IRC users who can access Mandelbot's protected functions on this network
         chans (dict)       - a dictionary of the channels Mandelbot is connected to, along with the modes Mandelbot has been granted on them
@@ -46,14 +45,16 @@ import time
 
 class network(object) :
     c = None
+    parser = None
     delimiter = "\r\n"
-    buffer = []
+    buff = []
     messages = []
     connected = False
     config = {} # This will be populated when the network is loaded from the configuration
 
     def __init__(self, config) :
         self.config = config
+        self.parser = utils.parser(self, self.config["command"])
 
     def connect(self) :
         try :
@@ -64,12 +65,31 @@ class network(object) :
             self.c.handler = (self, "_receive")
 
             self.identify()
+            self.testloop()
 
         except InvalidConnectionInformation :
             raise InvalidServer
 
         except CouldNotConnect :
             raise NoServerConnection
+
+    def testloop(self) :
+        time.sleep(5)
+        self.send("JOIN ##mandelbottesting")
+
+        try :
+            while True :
+                    inp = input("SEND> ")
+                    if inp == "QUIT" :
+                        self.quit("Via Command ({})".format(utils.logtime()))
+                        break
+                    elif inp == "FLOOD" :
+                        for _ in range(8) :
+                            self.send("PRIVMSG ##mandelbottesting :Flooding test")
+                    else :
+                        self.send(inp)
+        except KeyboardInterrupt :
+            self.quit("Via KeyboardInterrupt")
 
     def identify(self) :
         try :
@@ -80,25 +100,6 @@ class network(object) :
             #if self.config["password"] :
                 #self.send("PRIVMSG NICKSERV : identify {} {}".format(self.config["username"], utils.password.decode(self.config["password"])))
 
-            time.sleep(5)
-
-            self.send("JOIN ##mandelbottesting")
-
-            try :
-                while True :
-                    inp = input("SEND> ")
-                    if inp == "QUIT" :
-                        self.quit("Via Command ({})".format(utils.logtime()))
-                        break
-                    elif inp == "FLOOD" :
-                        for _ in range(8) :
-                            self.send("PRIVMSG ##mandelbottesting :Flooding test")
-                    else :
-                        self.send(inp)
-            except KeyboardInterrupt :
-                self.quit("Via KeyboardInterrupt")
-
-
         except NoSocket :
             raise NoServerConnection
 
@@ -108,7 +109,6 @@ class network(object) :
         self.close()
 
     def close(self) :
-        #time.sleep(1)
         self.c.close(True)
 
     def send(self, message) :
@@ -118,7 +118,7 @@ class network(object) :
 
     def _receive(self, data) :
         print("RECEIVED: {}".format(data))
-        message = utils.message.parse(data, self.config["command"])
+        message = self.parser.parse(data)
 
         if message["type"] == "PING" :
             self.send("PONG :{}".format(message["data"]))
