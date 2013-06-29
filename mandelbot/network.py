@@ -84,12 +84,28 @@ class network(object) :
 
             self.send("JOIN ##mandelbottesting")
 
+            try :
+                while(True) :
+                    inp = input("SEND> ")
+                    if inp == "QUIT" :
+                        self.quit("Via Command ({})".format(utils.logtime()))
+                        break
+                    elif inp == "FLOOD" :
+                        for _ in range(8) :
+                            self.send("PRIVMSG ##mandelbottesting :Flooding test")
+                    else :
+                        self.send(inp)
+            except KeyboardInterrupt :
+                self.quit("Via KeyboardInterrupt")
+
+
         except NoSocket :
             raise NoServerConnection
 
     def quit(self, message = None) :
         q = "QUIT :{}".format(message) if message else "QUIT"
         self.send(q)
+        self.c.close(True)
 
     def send(self, message) :
         message = message + self.delimiter
