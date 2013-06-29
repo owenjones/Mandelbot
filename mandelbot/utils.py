@@ -42,53 +42,75 @@ class config(object) :
     def __init__(self, file = None) :
         self.file = file
 
-        with open(file, "r") as fp :
-            self.loaded = json.load(fp)
-
     def __getattr__(self, name) :
         return self.loaded[name]
 
-    def build(self, networks = [], modules = []) :
-        conf = {}
-        nets = []
-        mods = []
-
-        for n in networks :
-            nets.append(n.config)
-
-        for m in modules :
-            mods.append(m.config)
-
-        if nets :
-            conf["networks"] = nets
-
-        if mods :
-            conf["modules"] = mods
-
-        self.save(conf)
-
-
-    def save(self, new) :
+    def load(self) :
         try :
-            assert(isinstance(new, dict))
-            assert(isinstance(new["networks"], list))
+            with open(self.file, "r") as fp :
+                self.loaded = json.load(fp)
 
-            assert(len(new["networks"]) > 0)
+        except (FileNotFoundError, ValueError) :
+            console("Invalid configuration file \"{}\", please run Mandelbot using the --build flag first".format(self.file))
+            exit(console("Aborting Mandelbot launch..."))
 
-            if new["modules"] :
-                assert(isinstance(new["modules"], list))
+    def build(self, networks = [], modules = []) :
+        console("Building new configuration...")
 
-            with open(self.file, "w") as fp :
-                json.dump(new, fp)
+        try :
+            assert(isinstance(networks, list))
+            assert(isinstance(modules, list))
+            assert(len(networks) > 0)
+
+            conf = {}
+            nets = []
+            mods = []
+
+            for n in networks :
+                nets.append(n.config)
+
+            for m in modules :
+                mods.append(m.config)
+
+            if nets :
+                conf["networks"] = nets
+
+            if mods :
+                conf["modules"] = mods
+
+            self._save(conf)
 
         except AssertionError :
-            utils.console("Updating configuration failed - invalid data structure")
+            console("Building configuration failed - invalid data structure")
 
         except Exception as e :
-            utils.console("Updating configuration failed - {}".format(str(e)))
+            console("Building configuration failed - {}".format(e))
+
+    def _save(self, new) :
+        try :
+            with open(self.file, "w") as fp :
+                json.dump(new, fp)
+                fp.close()
+
+            console("Configuration saved as \"{}\"".format(self.file))
+
+        except Exception as e :
+            console("Saving configuration failed - {}".format(e))
+
+
 
 
 class message(object) :
 
-    def parse(data) :
-        return data
+    def parse(raw, command) :
+        parsed = {}
+
+        data = raw.split(" :")
+        if "PING" == data[0] :
+            parsed["type"] = "PING"
+            parsed["data"] = data[1]
+        else :
+            parsed["type"] = "MSG"
+            parsed["data"] = raw
+
+        return parsed
