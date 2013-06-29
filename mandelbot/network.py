@@ -85,7 +85,7 @@ class network(object) :
             self.send("JOIN ##mandelbottesting")
 
             try :
-                while(True) :
+                while True :
                     inp = input("SEND> ")
                     if inp == "QUIT" :
                         self.quit("Via Command ({})".format(utils.logtime()))
@@ -105,6 +105,10 @@ class network(object) :
     def quit(self, message = None) :
         q = "QUIT :{}".format(message) if message else "QUIT"
         self.send(q)
+        self.close()
+
+    def close(self) :
+        #time.sleep(1)
         self.c.close(True)
 
     def send(self, message) :
