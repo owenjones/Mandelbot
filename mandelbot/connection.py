@@ -141,7 +141,7 @@ class connection(object) :
             except UnicodeDecodeError :
                 data = data.decode("UTF-16")
 
-            if not self.blocking and not data :
+            if self.blocking and not data :
                 raise SocketClosedUnexpectedly
 
             for part in data:
