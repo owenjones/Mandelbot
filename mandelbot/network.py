@@ -8,6 +8,7 @@ TODO:
 
 Properties:
 c (object)                 - the established connection to the IRC server
+parser (object)            - the message parser object for this network
 delimiter (str)            - the character(s) that break up messages being sent to the network
 buff (list)                - a list of messages waiting to be sent to the IRC network (prevents flooding)
 messages (list)            - a list of messages received from the IRC network
@@ -18,6 +19,7 @@ config: name (str)         - the name of the network
         port (int)         - the port the IRC server listens on
         ssl (bool)         - whether to connect using SSL or not
         autoconnect (bool) - whether to automatically connect to the IRC server when Mandelbot is launched
+        nickserv (str)     - the identification service on this network
         username (str)     - used to identify Mandelbot with the IRC server
         password (str)     - used to identify Mandelbot with the IRC server
         realname (str)     - used to identify Mandelbot with the IRC server
@@ -54,7 +56,7 @@ class network(object) :
 
     def __init__(self, config) :
         self.config = config
-        self.parser = utils.parser(self, self.config["command"])
+        self.parser = utils.parser(self)
 
     def connect(self) :
         try :
@@ -64,7 +66,10 @@ class network(object) :
             utils.console("Connection established ({})".format(self.config["name"]))
             self.c.handler = (self, "_receive")
 
-            self.identify()
+            utils.console("Identifying as {} on {}...".format(self.config["nickname"], self.config["name"]))
+            self.send("USER {} * * :{}".format(self.config["username"], self.config["realname"]))
+            self.send("NICK {}".format(self.config["nickname"]))
+
             self.testloop()
 
         except InvalidConnectionInformation :
@@ -73,6 +78,9 @@ class network(object) :
         except CouldNotConnect :
             raise NoServerConnection
 
+    """
+    Just for testing...
+    """
     def testloop(self) :
         time.sleep(5)
         self.send("JOIN ##mandelbottesting")
@@ -83,25 +91,31 @@ class network(object) :
                     if inp == "QUIT" :
                         self.quit("Via Command ({})".format(utils.logtime()))
                         break
+
                     elif inp == "FLOOD" :
                         for _ in range(8) :
                             self.send("PRIVMSG ##mandelbottesting :Flooding test")
+
+                    elif "+exec" in inp :
+                        try :
+                            exec(inp.strip("+exec "))
+                        except Exception as e :
+                            utils.console("Bad command: {}".format(str(e)))
                     else :
                         self.send(inp)
         except KeyboardInterrupt :
             self.quit("Via KeyboardInterrupt")
 
+    def nickname(self, nick) :
+        self.config["nickname"] = nick
+        self.send("NICK :{}".format(nick))
+
     def identify(self) :
-        try :
-            utils.console("Identifying as {} on {}...".format(self.config["nickname"], self.config["name"]))
-            self.send("NICK {}".format(self.config["nickname"]))
-            self.send("USER {} * * :{}".format(self.config["username"], self.config["realname"]))
+        if self.config["password"] :
+            self.send("PRIVMSG {} : identify {} {}".format(self.config["nickserv"], self.config["username"], utils.password.decode(self.config["password"])))
 
-            #if self.config["password"] :
-                #self.send("PRIVMSG NICKSERV : identify {} {}".format(self.config["username"], utils.password.decode(self.config["password"])))
-
-        except NoSocket :
-            raise NoServerConnection
+    def pong(self, host) :
+        self.send("PONG :{}".format(host))
 
     def quit(self, message = None) :
         q = "QUIT :{}".format(message) if message else "QUIT"
@@ -116,6 +130,9 @@ class network(object) :
         print("SENDING: " + message)
         self.c.send(message)
 
+    """
+    Placeholder, eventually received messages will just be passed to the parser
+    """
     def _receive(self, data) :
         print("RECEIVED: {}".format(data))
         message = self.parser.parse(data)

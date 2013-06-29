@@ -104,11 +104,11 @@ Message Parsing
 class parser(object) :
     network = None
     command = None
-    callbacks = {}
+    callbacks = {"PING" : "CB_PONG"}
 
-    def __init__(self, network, command) :
+    def __init__(self, network) :
         self.network = network
-        self.command = command
+        self.command = self.network.config["command"]
 
     def parse(self, raw) :
         parsed = {}
