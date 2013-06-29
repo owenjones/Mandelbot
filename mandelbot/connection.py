@@ -37,10 +37,12 @@ from .exceptions import (InvalidConnectionInformation, InvalidHandler, NoSocket,
 
 class connection(object) :
     sock = None
+    thread = None
     server = None
     port = None
     ssl = None
     blocking = None
+    closing = False
     handler = "_output"
     delimiter = "\n"
     _buffer = []
@@ -85,7 +87,7 @@ class connection(object) :
         except socket.error as e :
             raise CouldNotConnect(e.strerror, e.errno)
 
-    def close(self) :
+    def close(self, graceful = False) :
         try :
             assert isinstance(self.sock, socket.socket)
 
@@ -93,11 +95,19 @@ class connection(object) :
             raise NoSocket
 
         try :
-            self.sock.shutdown(socket.SHUT_RDWR)
-            self.sock.close()
+            if graceful and not self.closing :
+                self.closing = True
+
+            else :
+                self.sock.shutdown(socket.SHUT_RD)
+                self.sock.close()
+
+        # Occurs when the call to close the socket also calls a socket shutdown
+        except OSError :
+            pass
 
         except socket.error as e :
-            raise CouldNotDisconnect(e.strerror, e.errno)
+            raise CouldNotDisconnect(str(e))
 
     def send(self, data) :
         try :
@@ -115,11 +125,14 @@ class connection(object) :
         except AssertionError :
             raise NoSocket
 
-        t = _SocketConditions(self)
-        t.start()
+        self.thread = _SocketConditions(self)
+        self.thread.start()
 
     def _send(self) :
         try :
+            if self.closing and not self._buffer :
+                self.close()
+
             for data in self._buffer :
                 data = data.encode("UTF-8")
                 self.sock.send(data)
@@ -195,17 +208,14 @@ class _SocketConditions(Thread) :
     def run(self) :
         while self.sock :
             try :
-                read, write, error = select.select([self.sock], [self.sock], [], 0)
+                read, write, error = select.select([self.sock], [self.sock], [self.sock], 0)
 
                 if read :
                     self.conn._receive()
 
                 if write :
                     self.conn._send()
-
-                time.sleep(0.1)
+                    time.sleep(0.1)
 
             except :
-                self.conn.close()
                 self.sock = False
-                raise SocketClosedUnexpectedly
