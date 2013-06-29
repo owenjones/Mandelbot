@@ -49,6 +49,7 @@ class config(object) :
         try :
             with open(self.file, "r") as fp :
                 self.loaded = json.load(fp)
+                fp.close()
 
         except (FileNotFoundError, ValueError) :
             console("Invalid configuration file \"{}\", please run Mandelbot using the --build flag first".format(self.file))
@@ -96,9 +97,6 @@ class config(object) :
 
         except Exception as e :
             console("Saving configuration failed - {}".format(e))
-
-
-
 
 class message(object) :
 
