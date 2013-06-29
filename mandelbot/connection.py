@@ -208,14 +208,15 @@ class _SocketConditions(Thread) :
     def run(self) :
         while self.sock :
             try :
-                read, write, error = select.select([self.sock], [self.sock], [self.sock], 0)
+                read, write, error = select.select([self.sock], [self.sock], [], 0)
 
                 if read :
                     self.conn._receive()
 
                 if write :
                     self.conn._send()
-                    time.sleep(0.1)
+
+                time.sleep(0.1)
 
             except :
                 self.sock = False
