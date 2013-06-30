@@ -57,7 +57,7 @@ class network(object) :
 
     def __init__(self, config) :
         self.config = config
-        self.parser = utils.parser(self)
+        self.parser = parser.parser(self)
 
     def connect(self) :
         try :
