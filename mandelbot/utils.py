@@ -97,28 +97,3 @@ class config(object) :
 
         except Exception as e :
             console("Saving configuration failed - {}".format(e))
-
-"""
-Message Parsing
-"""
-class parser(object) :
-    network = None
-    command = None
-    callbacks = {"PING" : "CB_PONG"}
-
-    def __init__(self, network) :
-        self.network = network
-        self.command = self.network.config["command"]
-
-    def parse(self, raw) :
-        parsed = {}
-
-        data = raw.split(" :")
-        if "PING" == data[0] :
-            parsed["type"] = "PING"
-            parsed["data"] = data[1]
-        else :
-            parsed["type"] = "MSG"
-            parsed["data"] = raw
-
-        return parsed

@@ -42,7 +42,7 @@ quit                       - leaves the IRC network and closes the connection to
 Internal Methods:
 _receive                   - receives a message from the network and handles it
 """
-from . import connection, utils
+from . import connection, utils, parser
 from .exceptions import *
 import time
 
