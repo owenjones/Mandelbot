@@ -18,10 +18,11 @@ config: name (str)         - the name of the network
         host (str)         - the address of the IRC network server
         port (int)         - the port the IRC server listens on
         ssl (bool)         - whether to connect using SSL or not
+        password (str)     - the password for the IRC server (if required)
         autoconnect (bool) - whether to automatically connect to the IRC server when Mandelbot is launched
         nickserv (str)     - the identification service on this network
         username (str)     - used to identify Mandelbot with the IRC server
-        password (str)     - used to identify Mandelbot with the IRC server
+        nickpass (str)     - used to identify Mandelbot with the IRC server
         realname (str)     - used to identify Mandelbot with the IRC server
         nickname (str)     - used to identify Mandelbot with the IRC server
         command (str)      - the command identifier Mandelbot listens for on this network
@@ -62,9 +63,11 @@ class network(object) :
         try :
             self.c = connection.connection(self.config["host"], self.config["port"], self.config["ssl"], False)
             self.c.connect()
-            self.connected = True
             utils.console("Connection established ({})".format(self.config["name"]))
             self.c.handler = (self, "_receive")
+
+            if self.config["password"] :
+                self.send("PASS {}".format(utils.password.decode(self.config["password"])))
 
             utils.console("Identifying as {} on {}...".format(self.config["nickname"], self.config["name"]))
             self.send("USER {} * * :{}".format(self.config["username"], self.config["realname"]))
@@ -111,11 +114,11 @@ class network(object) :
         self.send("NICK :{}".format(nick))
 
     def identify(self) :
-        if self.config["password"] :
-            self.send("PRIVMSG {} : identify {} {}".format(self.config["nickserv"], self.config["username"], utils.password.decode(self.config["password"])))
+        if self.config["nickpass"] :
+            self.send("PRIVMSG {} :identify {} {}".format(self.config["nickserv"], self.config["username"], utils.password.decode(self.config["nickpass"])))
 
-    def pong(self, host) :
-        self.send("PONG :{}".format(host))
+    def pong(self, returned) :
+        self.send("PONG :{}".format(returned["data"]))
 
     def quit(self, message = None) :
         q = "QUIT :{}".format(message) if message else "QUIT"
