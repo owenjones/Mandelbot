@@ -91,7 +91,7 @@ class network(object) :
     Just for testing...
     """
     def testloop(self) :
-        time.sleep(5)
+        self.identify()
         self.send("JOIN ##mandelbottesting")
 
         try :
