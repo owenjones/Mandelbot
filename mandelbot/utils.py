@@ -13,7 +13,8 @@ def logtime(t = None) :
 
 """
 Password Methods
-Handle encoding/decoding network and user passwords for slightly safer storage
+Handle encoding and decoding network and user passwords for slightly "safer" storage
+(Stops people from being able to straight-up read your password from the config)
 
 encode (str) - Returns an encoded password as a string
 decode (str) - Returns a decoded password as a string
@@ -52,7 +53,8 @@ class config(object) :
                 fp.close()
 
         except (FileNotFoundError, ValueError) :
-            console("Invalid configuration file \"{}\", please run Mandelbot using the --build flag first".format(self.file))
+            console("""Invalid configuration file \"{}\", please run Mandelbot using
+                    the --build flag first""".format(self.file))
             exit(console("Aborting Mandelbot launch..."))
 
     def build(self, networks = [], modules = []) :
