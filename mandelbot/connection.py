@@ -103,7 +103,7 @@ class connection(object) :
             else :
                 self.sock.shutdown(socket.SHUT_WR)
                 self.sock.close()
-                self.thread.join()
+                #self.thread.join()
 
         except socket.error as e :
             raise CouldNotDisconnect(str(e))
@@ -205,17 +205,13 @@ class _SocketConditions(Thread) :
         self.sock = self.conn.sock
 
     def run(self) :
-        while self.sock :
-            try :
-                read, write, error = select.select([self.sock], [self.sock], [], 0)
+        while self.sock != -1 :
+            read, write, error = select.select([self.sock], [self.sock], [], 0)
 
-                if read :
-                    self.conn._receive()
+            if read :
+                self.conn._receive()
 
-                if write :
-                    self.conn._send()
+            if write :
+                self.conn._send()
 
-                time.sleep(0.1)
-
-            except :
-                self.sock = False
+            time.sleep(0.1)
