@@ -209,5 +209,8 @@ class _SocketConditions(Thread) :
 
             time.sleep(0.1)
 
+        else :
+            return
+
     def stop(self) :
         self.sock = False
