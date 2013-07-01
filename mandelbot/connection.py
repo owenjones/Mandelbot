@@ -56,35 +56,32 @@ class connection(object) :
             assert isinstance(usessl, bool)
             assert isinstance(blocking, bool)
 
+            self.server = server
+            self.port = port
+            self.ssl = usessl
+            self.blocking = blocking
+
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+            if self.ssl :
+                self.sock = ssl.wrap_socket(sock)
+            else :
+                self.sock = sock
+
         except AssertionError :
             raise InvalidConnectionInformation
-
-        self.server = server
-        self.port = port
-        self.ssl = usessl
-        self.blocking = blocking
-
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        if self.ssl :
-            self.sock = ssl.wrap_socket(sock)
-        else :
-            self.sock = sock
-
 
     def connect(self) :
         try :
             assert isinstance(self.sock, socket.socket)
-
-        except AssertionError :
-            raise NoSocket
-
-        try :
             self.sock.connect((self.server, self.port))
             self.sock.setblocking(self.blocking)
 
             if not self.blocking :
                 self._register()
+
+        except AssertionError :
+            raise NoSocket
 
         except socket.error as e :
             raise CouldNotConnect(str(e))
@@ -93,17 +90,16 @@ class connection(object) :
         try :
             assert isinstance(self.sock, socket.socket)
 
-        except AssertionError :
-            raise NoSocket
-
-        try :
             if graceful and not self.closing :
                 self.closing = True
 
             else :
                 self.sock.shutdown(socket.SHUT_WR)
                 self.sock.close()
-                #self.thread.join()
+                self.thread.stop()
+
+        except AssertionError :
+            raise NoSocket
 
         except socket.error as e :
             raise CouldNotDisconnect(str(e))
@@ -111,21 +107,19 @@ class connection(object) :
     def send(self, data) :
         try :
             assert isinstance(self.sock, socket.socket)
+            self._buffer.append(data)
 
         except AssertionError :
             raise NoSocket
-
-        self._buffer.append(data)
 
     def _register(self) :
         try :
             assert isinstance(self.sock, socket.socket)
+            self.thread = _SocketConditions(self)
+            self.thread.start()
 
         except AssertionError :
             raise NoSocket
-
-        self.thread = _SocketConditions(self)
-        self.thread.start()
 
     def _send(self) :
         try :
@@ -170,21 +164,17 @@ class connection(object) :
         try :
             assert isinstance(self.handler, (str, tuple, list))
 
-        except AssertionError :
-            raise InvalidHandler
+            if isinstance(self.handler, str) :
+                namespace = self
+                method = self.handler
 
-        if isinstance(self.handler, str) :
-            namespace = self
-            method = self.handler
+            elif isinstance(self.handler, (tuple, list))  :
+                namespace = self.handler[0]
+                method = self.handler[1]
 
-        elif isinstance(self.handler, (tuple, list))  :
-            namespace = self.handler[0]
-            method = self.handler[1]
-
-        try :
             getattr(namespace, method)(message)
 
-        except :
+        except (AssertionError, AttributeError) :
             raise InvalidHandler
 
     def _output(self, message) :
@@ -205,7 +195,7 @@ class _SocketConditions(Thread) :
         self.sock = self.conn.sock
 
     def run(self) :
-        while self.sock != -1 :
+        while self.sock :
             read, write, error = select.select([self.sock], [self.sock], [], 0)
 
             if read :
@@ -215,3 +205,6 @@ class _SocketConditions(Thread) :
                 self.conn._send()
 
             time.sleep(0.1)
+
+    def stop(self) :
+        self.sock = False
