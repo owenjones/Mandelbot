@@ -12,7 +12,8 @@ blocking (bool)            - whether the socket should be blocking or not
 closing (bool)             - triggered when the socket is preparing to close
 handler (tuple, list)      - the handler that received responses should be passed to
                            - defined as (namespace, method); must take a single string argument
-delimiter (str)            - the delimiter for data received by from the socket, received messages are split according to this
+delimiter (str)            - the delimiter for data received by from the socket,
+                             received messages are split according to this
 
 Internal Properties:
 _buffer (list)             - contains the messages that are waiting to be sent to the socket
@@ -24,9 +25,11 @@ close                      - ends the socket connection
 send (str)                 - adds a message to the outgoing message buffer
 
 Internal Methods:
-_register                  - creates a thread that handles checking if data can be sent and received (and then calls _send and _receive)
+_register                  - creates a thread that handles checking if data can be sent and received
+                             (and then calls _send and _receive)
 _send                      - runs through the message buffer and sends messages to the socket
-_receive                   - accepts data from the socket and splits it into messages, then hands these off to the response handler
+_receive                   - accepts data from the socket and splits it into messages,
+                             then hands these off to the response handler
 _handle (str)              - passes the message on to the handler
 _output (str)              - default handler, just prints the response to the console
 """
