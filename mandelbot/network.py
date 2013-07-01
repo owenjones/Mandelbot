@@ -28,7 +28,8 @@ config: name (str)         - the name of the network
         command (str)      - the command identifier Mandelbot listens for on this network
         owner (str)        - the IRC user who can administrate Mandelbot on this network
         users (list)       - a list of IRC users who can access Mandelbot's protected functions on this network
-        chans (dict)       - a dictionary of the channels Mandelbot is connected to, along with the modes Mandelbot has been granted on them
+        chans (dict)       - a dictionary of the channels Mandelbot is connected to,
+                             along with the modes Mandelbot has been granted on them
 
 Methods:
 connect                    - attempts to create a connection to the IRC server
@@ -61,7 +62,10 @@ class network(object) :
 
     def connect(self) :
         try :
-            self.c = connection.connection(self.config["host"], self.config["port"], self.config["ssl"], False)
+            self.c = connection.connection(self.config["host"],
+                                           self.config["port"],
+                                           self.config["ssl"],
+                                           False)
             self.c.connect()
             utils.console("Connection established ({})".format(self.config["name"]))
             self.c.handler = (self, "_receive")
@@ -69,7 +73,9 @@ class network(object) :
             if self.config["password"] :
                 self.send("PASS {}".format(utils.password.decode(self.config["password"])))
 
-            utils.console("Identifying as {} on {}...".format(self.config["nickname"], self.config["name"]))
+            utils.console("Identifying as {} on {}...".format(self.config["nickname"],
+                                                              self.config["name"]))
+
             self.send("USER {} * * :{}".format(self.config["username"], self.config["realname"]))
             self.send("NICK {}".format(self.config["nickname"]))
 
@@ -115,10 +121,12 @@ class network(object) :
 
     def identify(self) :
         if self.config["nickpass"] :
-            self.send("PRIVMSG {} :identify {} {}".format(self.config["nickserv"], self.config["username"], utils.password.decode(self.config["nickpass"])))
+            self.send("PRIVMSG {} :identify {} {}".format(self.config["nickserv"],
+                                                          self.config["username"],
+                                                          utils.password.decode(self.config["nickpass"])))
 
-    def pong(self, returned) :
-        self.send("PONG :{}".format(returned["data"]))
+    def pong(self, host) :
+        self.send("PONG :{}".format(host))
 
     def quit(self, message = None) :
         q = "QUIT :{}".format(message) if message else "QUIT"
@@ -138,7 +146,4 @@ class network(object) :
     """
     def _receive(self, data) :
         print("RECEIVED: {}".format(data))
-        message = self.parser.parse(data)
-
-        if message["type"] == "PING" :
-            self.send("PONG :{}".format(message["data"]))
+        self.parser.parse(data)
