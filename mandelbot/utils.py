@@ -29,12 +29,12 @@ class password(object) :
 
 """
 Configuration Methods
-These deal with loading and saving configuration files
 
-build - Takes a list of network and module objects, strips the configurations
-      - from each and packages them in a dictionary to be stored
-
-save  - Replaces the current configuration file with an updated one
+__init__ (str) - Initiates the configuration session using the specified file
+load           - Loads the configuration from the configuration file
+build          - Takes a list of network and module objects, strips the configurations
+               - from each and packages them in a dictionary to be stored
+save           - Replaces the current configuration file with an updated one
 """
 class config(object) :
     file = None
@@ -44,7 +44,11 @@ class config(object) :
         self.file = file
 
     def __getattr__(self, name) :
-        return self.loaded[name]
+        try :
+            return self.loaded[name]
+
+        except KeyError :
+            return False
 
     def load(self) :
         try :
