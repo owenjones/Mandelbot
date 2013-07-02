@@ -27,7 +27,7 @@ class Mandelbot(object) :
 
     def loadNetworks(self) :
         for n in self.config.networks :
-            net = network.network(n)
+            net = network.network(n, self)
             self.networks.append(net)
             if n["autoconnect"] :
                 net.connect()
@@ -35,8 +35,11 @@ class Mandelbot(object) :
     def loadModules(self) :
         pass
 
-    def quit(self) :
+    def shutdown(self, message = None) :
         utils.console("Shutting down..")
+        message = message if message else "Mandelbot IRC Bot ({})".format(__version__)
         for n in self.networks :
-            if n.connected :
-                n.quit()
+            if n.state.isConnected :
+                n.quit(message)
+
+        self.config.build(self.networks, self.modules)
