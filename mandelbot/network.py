@@ -7,7 +7,8 @@ TODO:
 * Implement anti-flooding (buffer & time limit)
 
 Properties:
-c (object)                 - the established connection to the IRC server
+bot (object)               - the current running instance of Mandelbot
+connection (object)        - the established connection to the IRC server
 parser (object)            - the message parser object for this network
 delimiter (str)            - the character(s) that break up messages being sent to the network
 buff (list)                - a list of messages waiting to be sent to the IRC network (prevents flooding)
@@ -48,7 +49,8 @@ from .exceptions import *
 import time
 
 class network(object) :
-    c = None
+    bot = None
+    connection = None
     parser = None
     delimiter = "\r\n"
     buff = []
@@ -56,19 +58,20 @@ class network(object) :
     connected = False
     config = {} # This will be populated when the network is loaded from the configuration
 
-    def __init__(self, config) :
+    def __init__(self, config, bot) :
+        self.bot = bot
         self.config = config
         self.parser = parser.parser(self)
 
     def connect(self) :
         try :
-            self.c = connection.connection(self.config["host"],
+            self.connection = connection.connection(self.config["host"],
                                            self.config["port"],
                                            self.config["ssl"],
                                            False)
-            self.c.connect()
+            self.connection.connect()
             utils.console("Connection established ({})".format(self.config["name"]))
-            self.c.handler = (self, "_receive")
+            self.connection.handler = (self.parser, "parse")
 
             if self.config["password"] :
                 self.send("PASS {}".format(utils.password.decode(self.config["password"])))
@@ -95,29 +98,7 @@ class network(object) :
         self.identify()
         self.send("JOIN ##mandelbottesting")
 
-        try :
-            while True :
-                    inp = input("SEND> ")
-                    if inp == "QUIT" :
-                        self.quit("Via Command ({})".format(utils.logtime()))
-                        break
-
-                    elif inp == "FLOOD" :
-                        for _ in range(8) :
-                            self.send("PRIVMSG ##mandelbottesting :Flooding test")
-
-                    elif "+exec" in inp :
-                        try :
-                            exec(inp.strip("+exec "))
-                        except Exception as e :
-                            utils.console("Bad command: {}".format(str(e)))
-                    else :
-                        self.send(inp)
-        except KeyboardInterrupt :
-            self.quit("Via KeyboardInterrupt")
-
-    def nickname(self, nick) :
-        self.config["nickname"] = nick
+    def nick(self, nick) :
         self.send("NICK :{}".format(nick))
 
     def identify(self) :
@@ -126,25 +107,21 @@ class network(object) :
                                                           self.config["username"],
                                                           utils.password.decode(self.config["nickpass"])))
 
+    def nickchanged(self, returned) :
+        self.config["nickname"] = returned["data"]
+
     def pong(self, host) :
-        self.send("PONG :{}".format(host))
+        self.send("PONG :{}".format(host[1:]))
+
+    def shutdown(self, returned) :
+        self.bot.shutdown(returned["data"])
 
     def quit(self, message = None) :
         q = "QUIT :{}".format(message) if message else "QUIT"
         self.send(q)
-        self.close()
-
-    def close(self) :
-        self.c.close(True)
+        self.connection.close(True)
 
     def send(self, message) :
         message = message + self.delimiter
         print("SENDING: " + message)
-        self.c.send(message)
-
-    """
-    Placeholder, eventually received messages will just be passed to the parser
-    """
-    def _receive(self, data) :
-        print("RECEIVED: {}".format(data))
-        self.parser.parse(data)
+        self.connection.send(message)
