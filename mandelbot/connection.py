@@ -129,11 +129,12 @@ class connection(object) :
             if self.closing and not self._buffer :
                 self.close()
 
-            for data in self._buffer :
-                data = data.encode("UTF-8")
-                self.sock.send(data)
+            elif self._buffer :
+                for data in self._buffer :
+                    data = data.encode("UTF-8")
+                    self.sock.send(data)
 
-            self._buffer = []
+                self._buffer = []
 
         except socket.error as e :
             raise CouldNotSend(str(e))
