@@ -10,10 +10,11 @@ Properties:
 bot (object)               - the current running instance of Mandelbot
 connection (object)        - the established connection to the IRC server
 parser (object)            - the message parser object for this network
+state (object)             - the state object for this network
 delimiter (str)            - the character(s) that break up messages being sent to the network
 buff (list)                - a list of messages waiting to be sent to the IRC network (prevents flooding)
 messages (list)            - a list of messages received from the IRC network
-connected (bool)           - whether the network is connected or not
+modes (list)               - the modes applied to the bot on this network
 
 config: name (str)         - the name of the network
         host (str)         - the address of the IRC network server
@@ -52,16 +53,18 @@ class network(object) :
     bot = None
     connection = None
     parser = None
+    state = None
     delimiter = "\r\n"
     buff = []
     messages = []
-    connected = False
+    modes = []
     config = {} # This will be populated when the network is loaded from the configuration
 
     def __init__(self, config, bot) :
         self.bot = bot
         self.config = config
         self.parser = parser.parser(self)
+        self.state = state()
 
     def connect(self) :
         try :
@@ -76,9 +79,6 @@ class network(object) :
             if self.config["password"] :
                 self.send("PASS {}".format(utils.password.decode(self.config["password"])))
 
-            utils.console("Identifying as {} on {}...".format(self.config["nickname"],
-                                                              self.config["name"]))
-
             self.send("USER {} * * :{}".format(self.config["username"], self.config["realname"]))
             self.send("NICK {}".format(self.config["nickname"]))
 
@@ -90,12 +90,15 @@ class network(object) :
         except CouldNotConnect :
             raise NoServerConnection
 
+    def connected(self, params) :
+        self.identify()
+        self.state.connected()
+
     """
     Just for testing...
     """
     def testloop(self) :
         time.sleep(5)
-        self.identify()
         self.send("JOIN ##mandelbottesting")
 
     def nick(self, nick) :
@@ -103,12 +106,26 @@ class network(object) :
 
     def identify(self) :
         if self.config["nickpass"] :
+            utils.console("Identifying as {} on {}".format(self.config["nickname"],
+                                                              self.config["name"]))
+
             self.send("PRIVMSG {} :identify {} {}".format(self.config["nickserv"],
                                                           self.config["nickname"],
                                                           utils.password.decode(self.config["nickpass"])))
 
+            self.nick(self.config["nickname"])
+
+    def message(self, target, message) :
+        self.send("PRIVMSG {} :{}".format(target, message))
+
+    def notice(self, target, message) :
+        self.send("NOTICE {} :{}".format(target, message))
+
     def nickchanged(self, returned) :
-        self.config["nickname"] = returned["data"]
+        self.config["nickname"] = returned[1:]
+
+    def modechanged(self, modes) :
+        pass
 
     def pong(self, host) :
         self.send("PONG :{}".format(host[1:]))
@@ -117,17 +134,31 @@ class network(object) :
         self.bot.shutdown(returned["data"])
 
     def quit(self, message = None) :
-        q = "QUIT :{}".format(message) if message else "QUIT"
+        q = "QUIT :{}".format(message[0]) if message[0] else "QUIT"
         self.send(q)
         self.connection.close(True)
 
     def send(self, message) :
         message = message + self.delimiter
-        print("SENDING: " + message)
         self.connection.send(message)
 
 """
 Network States
 """
 class state(object) :
-    pass
+    isConnected = False
+    isWelcome = False
+    isIdentified = False
+    isActive = False
+
+    def connected(self) :
+        self.isConnected = True
+
+    def welcome(self) :
+        self.isWelcome = True
+
+    def identified(self) :
+        self.isIdentified = True
+
+    def active(self) :
+        self.isActive = True
