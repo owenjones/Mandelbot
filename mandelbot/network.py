@@ -104,7 +104,7 @@ class network(object) :
     def identify(self) :
         if self.config["nickpass"] :
             self.send("PRIVMSG {} :identify {} {}".format(self.config["nickserv"],
-                                                          self.config["username"],
+                                                          self.config["nickname"],
                                                           utils.password.decode(self.config["nickpass"])))
 
     def nickchanged(self, returned) :
@@ -125,3 +125,9 @@ class network(object) :
         message = message + self.delimiter
         print("SENDING: " + message)
         self.connection.send(message)
+
+"""
+Network States
+"""
+class state(object) :
+    pass
