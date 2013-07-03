@@ -145,14 +145,14 @@ class connection(object) :
 
             data = self.sock.recv(4096)
 
+            if self.blocking and not data :
+                raise SocketClosedUnexpectedly
+
             try :
                 data = data.decode("UTF-8")
 
             except UnicodeDecodeError :
                 data = data.decode("UTF-16")
-
-            if self.blocking and not data :
-                raise SocketClosedUnexpectedly
 
             for part in data:
                 message += part
