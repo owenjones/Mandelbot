@@ -115,6 +115,9 @@ class network(object) :
 
             self.nick(self.config["nickname"])
 
+    def channels(self) :
+        pass
+
     def message(self, target, message) :
         self.send("PRIVMSG {} :{}".format(target, message))
 
@@ -124,14 +127,29 @@ class network(object) :
     def nickchanged(self, returned) :
         self.config["nickname"] = returned[1:]
 
-    def modechanged(self, modes) :
+    def modechanged(self, params) :
+        if params[2] == self.config["nickname"] :
+            modes = params[3][1:]
+            action = "append" if (modes[0] == "+") else "remove"
+
+            for m in modes[1:] :
+                print(m)
+                if m == "r" and action == "append" :
+                    self.state.identified()
+                    self.channels()
+
+                getattr(self.modes, action)(m)
+
+            print("Mode changed: {}".format(self.modes))
+
+    def joined(self, channel) :
         pass
 
     def pong(self, host) :
         self.send("PONG :{}".format(host[1:]))
 
-    def shutdown(self, returned) :
-        self.bot.shutdown(returned["data"])
+    def shutdown(self, message) :
+        self.bot.shutdown(message[0])
 
     def quit(self, message = None) :
         q = "QUIT :{}".format(message[0]) if message[0] else "QUIT"
