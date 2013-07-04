@@ -3,8 +3,6 @@ class MandelbotException(RuntimeError) :
     "I'm sorry, I seem to have broken slightly. My apologies." ~ Mandelbot
     """
 
-# Config
-
 # Network
 class NetworkError(MandelbotException) :
     """
