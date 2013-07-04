@@ -17,8 +17,8 @@ class parser(object) :
         self.builtin = {"PING"    : (self.network, "pong"),
                         "001"     : (self.network, "connected"),
                         "JOIN"    : (self.network, "joined"),
-                        "NICK"    : (self.network, "nickchange"),
-                        "MODE"    : (self.network, "modechange"),
+                        "NICK"    : (self.network, "nickchanged"),
+                        "MODE"    : (self.network, "modechanged"),
                         "ERROR"   : (self, "error"),
                         "NOTICE"  : (self, "message"),
                         "PRIVMSG" : (self, "message"),
@@ -41,8 +41,12 @@ class parser(object) :
             call = self.builtin[call]
             getattr(call[0], call[1])(params)
 
-        except (KeyError, AttributeError) :
+        except KeyError :
+            # Means we don't have to define a builtin for every single IRC command
             pass
+
+        except Exception as e :
+            utils.console("Error with builtin: [{}]".format(e))
 
     def callCallback(self, cmd, params) :
         try :
@@ -52,14 +56,15 @@ class parser(object) :
         except KeyError :
             self.network.message(params[1][2], "Command not registered")
 
+        except Exception as e :
+            utils.console("Error with command: [{}]".format(e))
+
     def parse(self, raw) :
-        raw = raw.strip()
-        print(raw)
-        parts = raw.split(" ", 3)
+        parts = raw.strip().split(" ", 3)
         if parts[0] == "PING" :
             self.callBuiltin("PING", parts[1])
 
-        elif parts[1] in ("JOIN", "NICK", "MODE", "ERROR") :
+        elif parts[1] in ("JOIN", "NICK", "ERROR") :
             addr = self.host(parts[0])
             self.callBuiltin(parts[1], (addr, parts[2]))
 
@@ -68,7 +73,7 @@ class parser(object) :
             addr = self.host(addr)
 
             if tgt[0] != "#" :
-                tgt = addr["nick"]
+                tgt = self.network.config["nickname"]
 
             self.callBuiltin(cmd, (addr, cmd, tgt, msg))
 
@@ -77,9 +82,6 @@ class parser(object) :
 
         if msg[0] == self.network.config["command"] :
             parts = msg.split(" ", 1)
-
-            print(parts)
-
             cmd = parts[0][1:]
             flags = parts[1] if (len(parts) > 1) else False
 
