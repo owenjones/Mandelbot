@@ -30,8 +30,8 @@ config: name (str)         - the name of the network
         command (str)      - the command identifier Mandelbot listens for on this network
         owner (str)        - the IRC user who can administrate Mandelbot on this network
         users (list)       - a list of IRC users who can access Mandelbot's protected functions on this network
-        chans (dict)       - a dictionary of the channels Mandelbot is connected to,
-                             along with the modes Mandelbot has been granted on them
+        chans (dict)       - a dictionary of the channels Mandelbot is to join,
+                             and the key (if required)
 
 Methods:
 connect                    - attempts to create a connection to the IRC server
@@ -41,11 +41,8 @@ notice                     - sends a notice to the specified channel or user
 join                       - joins a channel on the network
 part                       - leaves a channel on the network
 quit                       - leaves the IRC network and closes the connection to the server
-
-Internal Methods:
-_receive                   - receives a message from the network and handles it
 """
-from . import connection, utils, parser
+from . import connection, utils, parser, channel
 from .exceptions import *
 import time
 
@@ -58,6 +55,7 @@ class network(object) :
     buff = []
     messages = []
     modes = []
+    channels = {}
     config = {} # This will be populated when the network is loaded from the configuration
 
     def __init__(self, config, bot) :
@@ -80,9 +78,7 @@ class network(object) :
                 self.send("PASS {}".format(utils.password.decode(self.config["password"])))
 
             self.send("USER {} * * :{}".format(self.config["username"], self.config["realname"]))
-            self.send("NICK {}".format(self.config["nickname"]))
-
-            self.testloop()
+            self.nick()
 
         except InvalidConnectionInformation :
             raise InvalidServer
@@ -90,33 +86,37 @@ class network(object) :
         except CouldNotConnect :
             raise NoServerConnection
 
-    def connected(self, params) :
-        self.identify()
-        self.state.connected()
+    def send(self, message) :
+        message = message + self.delimiter
+        self.connection.send(message)
 
-    """
-    Just for testing...
-    """
-    def testloop(self) :
-        time.sleep(5)
-        self.send("JOIN ##mandelbottesting")
+    def joinChannels(self) :
+        for chan in self.config["chans"] :
+            self.join(chan["name"], chan["key"])
 
-    def nick(self, nick) :
+    # Nickname Managment
+    def nick(self, nick = None) :
+        nick = nick if nick else self.config["nickname"]
         self.send("NICK :{}".format(nick))
 
-    def identify(self) :
+    def identify(self, params = None) :
         if self.config["nickpass"] :
-            utils.console("Identifying as {} on {}".format(self.config["nickname"],
+            utils.console("Identifying as {} on {}...".format(self.config["nickname"],
                                                               self.config["name"]))
 
             self.send("PRIVMSG {} :identify {} {}".format(self.config["nickserv"],
                                                           self.config["nickname"],
                                                           utils.password.decode(self.config["nickpass"])))
 
-            self.nick(self.config["nickname"])
+            self.nick()
 
-    def channels(self) :
-        pass
+    # General Message Types
+    def pong(self, host) :
+        self.send("PONG :{}".format(host[1:]))
+
+    def join(self, chan, key) :
+        self.channels[chan] = channel.channel(self, chan, key)
+        self.channels[chan].join()
 
     def message(self, target, message) :
         self.send("PRIVMSG {} :{}".format(target, message))
@@ -124,41 +124,65 @@ class network(object) :
     def notice(self, target, message) :
         self.send("NOTICE {} :{}".format(target, message))
 
+    def quit(self, message) :
+        q = "QUIT :{}".format(message) if message else "QUIT"
+        self.send(q)
+        self.connection.close(True)
+
+    def shutdown(self, message) :
+        self.bot.shutdown(message)
+
+    # Network Events
+    def connected(self, params) :
+        self.identify()
+        self.state.connected()
+
     def nickchanged(self, returned) :
         self.config["nickname"] = returned[1:]
 
     def modechanged(self, params) :
         if params[2] == self.config["nickname"] :
-            modes = params[3][1:]
-            action = "append" if (modes[0] == "+") else "remove"
+            modes = params[3]
+            action = "append" if modes[0] == "+" else "remove"
 
             for m in modes[1:] :
-                print(m)
                 if m == "r" and action == "append" :
+                    utils.console("...identified")
                     self.state.identified()
-                    self.channels()
+                    self.joinChannels()
 
                 getattr(self.modes, action)(m)
 
-            print("Mode changed: {}".format(self.modes))
+    def joined(self, params) :
+        utils.console("{} joined {}".format(self.config["nickname"], params[1]))
+        self.channels[params[1]].joined()
 
-    def joined(self, channel) :
-        pass
+    def kicked(self, params) :
+        utils.console("{} kicked from {} on {}".format(self.config["nickname"], params[2]))
+        self.channels[params[2]].join()
 
-    def pong(self, host) :
-        self.send("PONG :{}".format(host[1:]))
+    # Basic Mandelbot Commands
+    def cmd_quit(self, flags) :
+        self.quit(flags[0])
 
-    def shutdown(self, message) :
-        self.bot.shutdown(message[0])
+    def cmd_shutdown(self, flags) :
+        self.shutdown(flags[0])
 
-    def quit(self, message = None) :
-        q = "QUIT :{}".format(message[0]) if message[0] else "QUIT"
-        self.send(q)
-        self.connection.close(True)
+    def cmd_join(self, flags) :
+        parts = flags[0].split(" ", 1)
+        chan = parts[0]
+        key = parts[1] if len(parts) > 1 else False
 
-    def send(self, message) :
-        message = message + self.delimiter
-        self.connection.send(message)
+        self.join(chan, key)
+
+    def cmd_part(self, flags) :
+        self.channels[flags[1][2]].part(flags[0])
+
+    def cmd_callbacks(self, flags) :
+        self.message(flags[1][2], "Callbacks: {}".format(self.parser.callback))
+
+    def cmd_builtins(self, flags) :
+        self.message(flags[1][2], "Builtins: {}".format(self.parser.builtin))
 
 """
 Network States
