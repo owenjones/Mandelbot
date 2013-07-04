@@ -15,16 +15,24 @@ class parser(object) :
         self.network = network
 
         self.builtin = {"PING"    : (self.network, "pong"),
+
+                        # Trigger Network Events
                         "001"     : (self.network, "connected"),
                         "JOIN"    : (self.network, "joined"),
                         "NICK"    : (self.network, "nickchanged"),
                         "MODE"    : (self.network, "modechanged"),
-                        "ERROR"   : (self, "error"),
-                        "NOTICE"  : (self, "message"),
-                        "PRIVMSG" : (self, "message"),
-                        "KICK"    : (self.network, "kicked")}
+                        "KICK"    : (self.network, "kicked"),
 
-        self.callback = {"quit" : (self.network, "quit")}
+                        # Handle received messages
+                        "NOTICE"  : (self, "message"),
+                        "PRIVMSG" : (self, "message")}
+
+        self.callback = {"quit"      : (self.network, "cmd_quit"),
+                         "shutdown"  : (self.network, "cmd_shutdown"),
+                         "join"      : (self.network, "cmd_join"),
+                         "part"      : (self.network, "cmd_part"),
+                         "callbacks" : (self.network, "cmd_callbacks"),
+                         "builtins"  : (self.network, "cmd_builtins")}
 
     def host(self, addr) :
         addr = addr[1:]
@@ -53,8 +61,8 @@ class parser(object) :
             call = self.callback[cmd]
             getattr(call[0], call[1])(params)
 
-        except KeyError :
-            self.network.message(params[1][2], "Command not registered")
+        except (KeyError, AttributeError) :
+            self.network.message(params[1][2], "Command \"{}\" not registered".format(cmd))
 
         except Exception as e :
             utils.console("Error with command: [{}]".format(e))
@@ -64,21 +72,24 @@ class parser(object) :
         if parts[0] == "PING" :
             self.callBuiltin("PING", parts[1])
 
-        elif parts[1] in ("JOIN", "NICK", "ERROR") :
+        elif parts[1] in ("JOIN", "NICK", "PART") :
             addr = self.host(parts[0])
-            self.callBuiltin(parts[1], (addr, parts[2]))
+            msg = parts[2][1:] if parts[2][0] == ":" else parts[2]
+            self.callBuiltin(parts[1], (addr, msg))
 
         else :
             addr, cmd, tgt, msg = parts
             addr = self.host(addr)
 
             if tgt[0] != "#" :
-                tgt = self.network.config["nickname"]
+                tgt = self.network.config["nickname"] if cmd == "MODE" else addr["nick"]
+
+            msg = msg[1:] if msg[0] is ":" else msg
 
             self.callBuiltin(cmd, (addr, cmd, tgt, msg))
 
     def message(self, params) :
-        msg = params[3][1:]
+        msg = params[3]
 
         if msg[0] == self.network.config["command"] :
             parts = msg.split(" ", 1)
