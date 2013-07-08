@@ -8,7 +8,7 @@ class channel(object) :
     key = None
     modes = []
     users = []
-    joined = False
+    hasjoined = False
 
     def __init__(self, network, name, key) :
         self.name = name
@@ -20,7 +20,7 @@ class channel(object) :
         self.network.send(c)
 
     def joined(self) :
-        self.joined = True
+        self.hasjoined = True
 
     def part(self, message = None) :
         c = "PART {} {}".format(self.name, message) if message else "PART {}".format(self.name)

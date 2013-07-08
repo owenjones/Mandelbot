@@ -158,8 +158,10 @@ class network(object) :
         self.channels[params[1]].joined()
 
     def kicked(self, params) :
-        utils.console("{} kicked from {} on {}".format(self.config["nickname"], params[1][2]))
-        self.channels[params[1][2]].join()
+        kicked = params[3].split()[0]
+        if kicked == self.config["nickname"] :
+            utils.console("{} kicked from {} on {}".format(self.config["nickname"], params[2], self.config["name"]))
+            self.channels[params[2]].join()
 
     # Basic Mandelbot Commands
     @decorators.owner
