@@ -42,7 +42,7 @@ join                       - joins a channel on the network
 part                       - leaves a channel on the network
 quit                       - leaves the IRC network and closes the connection to the server
 """
-from . import connection, utils, parser, channel
+from . import connection, utils, parser, channel, decorators
 from .exceptions import *
 import time
 
@@ -67,9 +67,10 @@ class network(object) :
     def connect(self) :
         try :
             self.connection = connection.connection(self.config["host"],
-                                           self.config["port"],
-                                           self.config["ssl"],
-                                           False)
+                                                    self.config["port"],
+                                                    self.config["ssl"],
+                                                    False)
+
             self.connection.connect()
             utils.console("Connection established ({})".format(self.config["name"]))
             self.connection.handler = (self.parser, "parse")
@@ -90,9 +91,21 @@ class network(object) :
         message = message + self.delimiter
         self.connection.send(message)
 
+    def join(self, chan, key) :
+        self.channels[chan] = channel.channel(self, chan, key)
+        self.channels[chan].join()
+
     def joinChannels(self) :
         for chan in self.config["chans"] :
             self.join(chan["name"], chan["key"])
+
+    def quit(self, message) :
+        q = "QUIT :{}".format(message) if message else "QUIT"
+        self.send(q)
+        self.connection.close(True)
+
+    def shutdown(self, message) :
+        self.bot.shutdown(message)
 
     # Nickname Managment
     def nick(self, nick = None) :
@@ -114,23 +127,11 @@ class network(object) :
     def pong(self, host) :
         self.send("PONG :{}".format(host[1:]))
 
-    def join(self, chan, key) :
-        self.channels[chan] = channel.channel(self, chan, key)
-        self.channels[chan].join()
-
     def message(self, target, message) :
         self.send("PRIVMSG {} :{}".format(target, message))
 
     def notice(self, target, message) :
         self.send("NOTICE {} :{}".format(target, message))
-
-    def quit(self, message) :
-        q = "QUIT :{}".format(message) if message else "QUIT"
-        self.send(q)
-        self.connection.close(True)
-
-    def shutdown(self, message) :
-        self.bot.shutdown(message)
 
     # Network Events
     def connected(self, params) :
@@ -162,12 +163,15 @@ class network(object) :
         self.channels[params[2]].join()
 
     # Basic Mandelbot Commands
+    @decorators.owner
     def cmd_quit(self, flags) :
         self.quit(flags[0])
 
+    @decorators.owner
     def cmd_shutdown(self, flags) :
         self.shutdown(flags[0])
 
+    @decorators.user
     def cmd_join(self, flags) :
         parts = flags[0].split(" ", 1)
         chan = parts[0]
@@ -175,12 +179,15 @@ class network(object) :
 
         self.join(chan, key)
 
+    @decorators.user
     def cmd_part(self, flags) :
         self.channels[flags[1][2]].part(flags[0])
 
+    @decorators.user
     def cmd_callbacks(self, flags) :
         self.message(flags[1][2], "Callbacks: {}".format(self.parser.callback))
 
+    @decorators.user
     def cmd_builtins(self, flags) :
         self.message(flags[1][2], "Builtins: {}".format(self.parser.builtin))
 
