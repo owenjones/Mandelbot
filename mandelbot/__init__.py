@@ -36,7 +36,7 @@ class Mandelbot(object) :
         pass
 
     def shutdown(self, message = None) :
-        utils.console("Shutting down..")
+        utils.console("Shutting down...")
         message = message if message else "Mandelbot IRC Bot ({})".format(__version__)
         for n in self.networks :
             if n.state.isConnected :
