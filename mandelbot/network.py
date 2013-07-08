@@ -44,7 +44,6 @@ quit                       - leaves the IRC network and closes the connection to
 """
 from . import connection, utils, parser, channel, decorators
 from .exceptions import *
-import time
 
 class network(object) :
     bot = None
@@ -159,8 +158,8 @@ class network(object) :
         self.channels[params[1]].joined()
 
     def kicked(self, params) :
-        utils.console("{} kicked from {} on {}".format(self.config["nickname"], params[2]))
-        self.channels[params[2]].join()
+        utils.console("{} kicked from {} on {}".format(self.config["nickname"], params[1][2]))
+        self.channels[params[1][2]].join()
 
     # Basic Mandelbot Commands
     @decorators.owner
@@ -190,6 +189,12 @@ class network(object) :
     @decorators.user
     def cmd_builtins(self, flags) :
         self.message(flags[1][2], "Builtins: {}".format(self.parser.builtin))
+
+    # Use with care - can cause network connection to ping timeout if eval
+    # takes too long to run
+    @decorators.owner
+    def cmd_exec(self, flags) :
+        self.message(flags[1][2], eval(flags[0]))
 
 """
 Network States
