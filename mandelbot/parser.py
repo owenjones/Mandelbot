@@ -66,6 +66,7 @@ class parser(object) :
 
         except Exception as e :
             utils.console("Error with command: [{}]".format(e))
+            self.network.message(params[1][2], "Error with command: [{}]".format(e))
 
     def parse(self, raw) :
         parts = raw.strip().split(" ", 3)
