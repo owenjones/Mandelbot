@@ -42,7 +42,8 @@ join                       - joins a channel on the network
 part                       - leaves a channel on the network
 quit                       - leaves the IRC network and closes the connection to the server
 """
-from . import connection, utils, parser, channel, decorators
+from . import connection, utils, parser, channel
+from .decorators import owner, user
 from .exceptions import *
 
 class network(object) :
@@ -164,15 +165,15 @@ class network(object) :
             self.channels[params[2]].join()
 
     # Basic Mandelbot Commands
-    @decorators.owner
+    @owner
     def cmd_quit(self, flags) :
         self.quit(flags[0])
 
-    @decorators.owner
+    @owner
     def cmd_shutdown(self, flags) :
         self.shutdown(flags[0])
 
-    @decorators.user
+    @user
     def cmd_join(self, flags) :
         parts = flags[0].split(" ", 1)
         chan = parts[0]
@@ -180,21 +181,21 @@ class network(object) :
 
         self.join(chan, key)
 
-    @decorators.user
+    @user
     def cmd_part(self, flags) :
         self.channels[flags[1][2]].part(flags[0])
 
-    @decorators.user
+    @user
     def cmd_callbacks(self, flags) :
         self.message(flags[1][2], "Callbacks: {}".format(self.parser.callback))
 
-    @decorators.user
+    @user
     def cmd_builtins(self, flags) :
         self.message(flags[1][2], "Builtins: {}".format(self.parser.builtin))
 
     # Use with care - can cause network connection to ping timeout if eval
     # takes too long to run
-    @decorators.owner
+    @owner
     def cmd_exec(self, flags) :
         self.message(flags[1][2], eval(flags[0]))
 
