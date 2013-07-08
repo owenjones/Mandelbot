@@ -32,7 +32,8 @@ class parser(object) :
                          "join"      : (self.network, "cmd_join"),
                          "part"      : (self.network, "cmd_part"),
                          "callbacks" : (self.network, "cmd_callbacks"),
-                         "builtins"  : (self.network, "cmd_builtins")}
+                         "builtins"  : (self.network, "cmd_builtins"),
+                         "!"         : (self.network, "cmd_exec")}
 
     def host(self, addr) :
         addr = addr[1:]
@@ -69,6 +70,7 @@ class parser(object) :
             self.network.message(params[1][2], "Error with command: [{}]".format(e))
 
     def parse(self, raw) :
+        print(raw)
         parts = raw.strip().split(" ", 3)
         if parts[0] == "PING" :
             self.callBuiltin("PING", parts[1])
