@@ -1,13 +1,10 @@
 #Mandelbot
 def owner(commandCall) :
     def inner(obj, params) :
-        print("In decorator")
         if params[1][0]["user"] == obj.config["owner"] :
-            print("Can call")
             commandCall(obj, params)
 
         else :
-            print("Can't call")
             obj.message(params[1][2], "This command can only be run by the bot owner")
 
     return inner
