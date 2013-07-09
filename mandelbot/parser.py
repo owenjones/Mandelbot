@@ -65,6 +65,7 @@ class parser(object) :
 
         except KeyError :
             self.network.message(params[1][2], "Command \"{}\" not registered".format(cmd))
+            break
 
         try :
             getattr(call[0], call[1])(params)
