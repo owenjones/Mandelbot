@@ -161,7 +161,7 @@ class network(object) :
     def kicked(self, params) :
         kicked = params[3].split()[0]
         if kicked == self.config["nickname"] :
-            utils.console("{} kicked from {} on {}".format(self.config["nickname"], params[2], self.config["name"]))
+            utils.console("{} kicked from {} on {} ({})".format(self.config["nickname"], params[2], self.config["name"], kicked[1][1:]))
             self.channels[params[2]].join()
 
     # Basic Mandelbot Commands
@@ -183,7 +183,16 @@ class network(object) :
 
     @user
     def cmd_part(self, flags) :
-        self.channels[flags[1][2]].part(flags[0])
+        if flags[0] and flags[0][0] == "#" :
+            parts = flags[0].split(" ", 1)
+            chan = parts[0]
+            message = parts[1] if len(parts) > 1 else False
+
+        else :
+            chan = flags[1][2]
+            message = flags[0]
+
+        self.channels[chan].part(message)
 
     @user
     def cmd_callbacks(self, flags) :
