@@ -48,11 +48,13 @@ class parser(object) :
     def callBuiltin(self, call, params) :
         try :
             call = self.builtin[call]
-            getattr(call[0], call[1])(params)
 
         except KeyError :
             # Means we don't have to define a builtin for every single IRC command
-            pass
+            return
+
+        try :
+            getattr(call[0], call[1])(params)
 
         except Exception as e :
             utils.console("Error with builtin: [{}]".format(e))
@@ -60,9 +62,14 @@ class parser(object) :
     def callCallback(self, cmd, params) :
         try :
             call = self.callback[cmd]
+
+        except KeyError :
+            self.network.message(params[1][2], "Command \"{}\" not registered".format(cmd))
+
+        try :
             getattr(call[0], call[1])(params)
 
-        except (KeyError, AttributeError) :
+        except AttributeError :
             self.network.message(params[1][2], "Command \"{}\" not registered".format(cmd))
 
         except Exception as e :
