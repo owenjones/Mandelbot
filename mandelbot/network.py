@@ -5,6 +5,7 @@ Handles establishing a connection to, and interacting with, the IRC network.
 
 TODO:
 * Implement anti-flooding (buffer & time limit)
+* Separate basic commands from network model
 
 Properties:
 bot (object)               - the current running instance of Mandelbot
