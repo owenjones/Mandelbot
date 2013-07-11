@@ -57,8 +57,7 @@ class config(object) :
                 fp.close()
 
         except (FileNotFoundError, ValueError) :
-            console("""Invalid configuration file \"{}\", please run Mandelbot using
-                    the --build flag first""".format(self.file))
+            console("Invalid configuration file \"{}\", please run Mandelbot using the --build flag first".format(self.file))
             exit(console("Aborting Mandelbot launch..."))
 
     def build(self, networks = [], modules = []) :
