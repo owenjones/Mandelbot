@@ -93,6 +93,7 @@ class network(object) :
         self.connection.send(message)
 
     def join(self, chan, key) :
+        chan = chan.lower()
         self.channels[chan] = channel.channel(self, chan, key)
         self.channels[chan].join()
 
@@ -156,14 +157,17 @@ class network(object) :
                 getattr(self.modes, action)(m)
 
     def joined(self, params) :
-        utils.console("{} joined {}".format(self.config["nickname"], params[1]))
-        self.channels[params[1]].joined()
+        if params[0]["nick"] == self.config["nickname"] :
+            utils.console("{} joined {}".format(self.config["nickname"], params[1]))
+            self.channels[params[1].lower()].joined()
+        else :
+            self.channels[params[1].lower()].users.append(params[2])
 
     def kicked(self, params) :
-        kicked = params[3].split()[0]
-        if kicked == self.config["nickname"] :
+        kicked = params[3].split(" ", 1)
+        if kicked[0] == self.config["nickname"] :
             utils.console("{} kicked from {} on {} ({})".format(self.config["nickname"], params[2], self.config["name"], kicked[1][1:]))
-            self.channels[params[2]].join()
+            self.channels[params[2].lower()].join()
 
     # Basic Mandelbot Commands
     @owner
