@@ -11,8 +11,8 @@ class channel(object) :
     hasjoined = False
 
     def __init__(self, network, name, key) :
-        self.name = name
         self.network = network
+        self.name = name
         self.key = key
 
     def join(self) :
