@@ -4,36 +4,14 @@ Message Parsing
 Provides methods to parse incoming messages from an IRC network, and to
 register callbacks for commands.
 """
-from . import utils
+from mandelbot import utils
 
 class parser(object) :
     network = None
     builtin = {}
-    callback = {}
 
     def __init__(self, network) :
         self.network = network
-
-        self.builtin = {"PING"    : (self.network, "pong"),
-
-                        # Trigger Network Events
-                        "001"     : (self.network, "connected"),
-                        "JOIN"    : (self.network, "joined"),
-                        "NICK"    : (self.network, "nickchanged"),
-                        "MODE"    : (self.network, "modechanged"),
-                        "KICK"    : (self.network, "kicked"),
-
-                        # Handle received messages
-                        "NOTICE"  : (self, "message"),
-                        "PRIVMSG" : (self, "message")}
-
-        self.callback = {"quit"      : (self.network, "cmd_quit"),
-                         "shutdown"  : (self.network, "cmd_shutdown"),
-                         "join"      : (self.network, "cmd_join"),
-                         "part"      : (self.network, "cmd_part"),
-                         "callbacks" : (self.network, "cmd_callbacks"),
-                         "builtins"  : (self.network, "cmd_builtins"),
-                         "!"         : (self.network, "cmd_exec")}
 
     def host(self, addr) :
         addr = addr[1:]
@@ -59,26 +37,9 @@ class parser(object) :
         except Exception as e :
             utils.console("Error with builtin: [{}]".format(e))
 
-    def callCallback(self, cmd, params) :
-        try :
-            call = self.callback[cmd]
-
-        except KeyError :
-            self.network.message(params[1][2], "Command \"{}\" not registered".format(cmd))
-            return
-
-        try :
-            getattr(call[0], call[1])(params)
-
-        except AttributeError :
-            self.network.message(params[1][2], "Command \"{}\" not registered".format(cmd))
-
-        except Exception as e :
-            utils.console("Error with command: [{}]".format(e))
-            self.network.message(params[1][2], "Error with command: [{}]".format(e))
-
     def parse(self, raw) :
         parts = raw.strip().split(" ", 3)
+        #print(parts)
         if parts[0] == "PING" :
             self.callBuiltin("PING", parts[1])
 
@@ -101,9 +62,9 @@ class parser(object) :
     def message(self, params) :
         msg = params[3]
 
-        if msg[0] == self.network.config["command"] :
+        if msg.startswith(self.network.config["command"]) :
             parts = msg.split(" ", 1)
-            cmd = parts[0][1:]
+            cmd = parts[0][len(self.network.config["command"]):]
             flags = parts[1] if (len(parts) > 1) else False
 
-            self.callCallback(cmd, (flags, params))
+            self.network.bot.triggerCommand(self.network, cmd, (flags, params))
