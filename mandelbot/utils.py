@@ -32,7 +32,7 @@ Configuration Methods
 
 __init__ (str) - Initiates the configuration session using the specified file
 load           - Loads the configuration from the configuration file
-build          - Takes a list of network and module objects, strips the configurations
+build          - Takes a list of network objects, strips the configurations
                - from each and packages them in a dictionary to be stored
 save           - Replaces the current configuration file with an updated one
 """
@@ -60,29 +60,21 @@ class config(object) :
             console("Invalid configuration file \"{}\", please run Mandelbot using the --build flag first".format(self.file))
             exit(console("Aborting Mandelbot launch..."))
 
-    def build(self, networks = [], modules = []) :
+    def build(self, networks = []) :
         console("Building new configuration...")
 
         try :
             assert(isinstance(networks, list))
-            assert(isinstance(modules, list))
             assert(len(networks) > 0)
 
             conf = {}
             nets = []
-            mods = []
 
             for n in networks :
                 nets.append(n.config)
 
-            for m in modules :
-                mods.append(m.config)
-
             if nets :
                 conf["networks"] = nets
-
-            if mods :
-                conf["modules"] = mods
 
             self._save(conf)
 
