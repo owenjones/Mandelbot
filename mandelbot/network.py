@@ -43,9 +43,8 @@ join                       - joins a channel on the network
 part                       - leaves a channel on the network
 quit                       - leaves the IRC network and closes the connection to the server
 """
-from . import connection, utils, parser, channel
-from .decorators import owner, user
-from .exceptions import *
+from mandelbot import connection, utils, parser, channel
+from mandelbot.exceptions import *
 
 class network(object) :
     bot = None
@@ -62,8 +61,21 @@ class network(object) :
     def __init__(self, config, bot) :
         self.bot = bot
         self.config = config
-        self.parser = parser.parser(self)
         self.state = state()
+
+        self.parser = parser.parser(self)
+        self.parser.builtin = {"PING"    : (self, "pong"),
+
+                               # Trigger Network Events
+                               "001"     : (self, "connected"),
+                               "JOIN"    : (self, "joined"),
+                               "NICK"    : (self, "nickchanged"),
+                               "MODE"    : (self, "modechanged"),
+                               "KICK"    : (self, "kicked"),
+
+                               # Handle received messages
+                               "NOTICE"  : (self.parser, "message"),
+                               "PRIVMSG" : (self.parser, "message")}
 
     def connect(self) :
         try :
@@ -107,7 +119,10 @@ class network(object) :
         self.connection.close(True)
 
     def shutdown(self, message) :
-        self.bot.shutdown(message)
+        bot.shutdown(message)
+
+    def reply(self, message, params) :
+        self.message(params[1][2], message)
 
     # Nickname Managment
     def nick(self, nick = None) :
@@ -140,8 +155,9 @@ class network(object) :
         self.identify()
         self.state.connected()
 
-    def nickchanged(self, returned) :
-        self.config["nickname"] = returned[1:]
+    def nickchanged(self, params) :
+        if params[0]["nick"] == self.config["nickname"] :
+            self.config["nickname"] = params[1]
 
     def modechanged(self, params) :
         if params[2] == self.config["nickname"] :
@@ -163,55 +179,14 @@ class network(object) :
         else :
             self.channels[params[1].lower()].users.append(params[2])
 
+    def names(self, params) :
+        pass
+
     def kicked(self, params) :
         kicked = params[3].split(" ", 1)
         if kicked[0] == self.config["nickname"] :
             utils.console("{} kicked from {} on {} ({})".format(self.config["nickname"], params[2], self.config["name"], kicked[1][1:]))
             self.channels[params[2].lower()].join()
-
-    # Basic Mandelbot Commands
-    @owner
-    def cmd_quit(self, flags) :
-        self.quit(flags[0])
-
-    @owner
-    def cmd_shutdown(self, flags) :
-        self.shutdown(flags[0])
-
-    @user
-    def cmd_join(self, flags) :
-        parts = flags[0].split(" ", 1)
-        chan = parts[0]
-        key = parts[1] if len(parts) > 1 else False
-
-        self.join(chan, key)
-
-    @user
-    def cmd_part(self, flags) :
-        if flags[0] and flags[0][0] == "#" :
-            parts = flags[0].split(" ", 1)
-            chan = parts[0]
-            message = parts[1] if len(parts) > 1 else False
-
-        else :
-            chan = flags[1][2]
-            message = flags[0]
-
-        self.channels[chan].part(message)
-
-    @user
-    def cmd_callbacks(self, flags) :
-        self.message(flags[1][2], "Callbacks: {}".format(self.parser.callback))
-
-    @user
-    def cmd_builtins(self, flags) :
-        self.message(flags[1][2], "Builtins: {}".format(self.parser.builtin))
-
-    # Use with care - can cause network connection to ping timeout if eval
-    # takes too long to run
-    @owner
-    def cmd_exec(self, flags) :
-        self.message(flags[1][2], eval(flags[0]))
 
 """
 Network States
