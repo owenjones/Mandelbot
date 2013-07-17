@@ -3,11 +3,13 @@
         {
             "name"        : "A_Network",
             "host"        : "irc.network.com",
+            "password"    : false,
             "port"        : 6066,
             "ssl"         : false,
             "autoconnect" : true,
+            "nickserv"    : "NickServ",
             "username"    : "Mandelbot",
-            "password"    : "",
+            "nickpass"    : "password",
             "realname"    : "Mandelbot IRC bot",
             "nickname"    : "Mandelbot",
             "command"     : "~",
@@ -15,12 +17,12 @@
             "users"       : [],
             "chans"       : [
                 {
-                    "name"  : "#python",
-                    "mode"  : false
+                    "name" : "#python",
+                    "key"  : false
                 },
                 {
-                    "name"  : "#myveryownchannel",
-                    "mode"  : "~@"
+                    "name" : "#myveryownchannel",
+                    "key"  : "a_key"
                 }
             ]
         }
