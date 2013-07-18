@@ -25,4 +25,7 @@ class channel(object) :
     def part(self, message = None) :
         c = "PART {} {}".format(self.name, message) if message else "PART {}".format(self.name)
         self.network.send(c)
-        self.joined = False
+        self.hasjoined = False
+
+    def isOp(self) :
+        return True if ("@", "~", "%") in self.modes else False
