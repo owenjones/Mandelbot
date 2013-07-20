@@ -4,6 +4,7 @@ Mandelbot Basic Network Commands
 """
 import sys
 from mandelbot.decorators import owner, user
+from mandelbot import utils
 
 def initalise(bot) :
     current = sys.modules[__name__]
@@ -44,4 +45,4 @@ def part(obj, flags) :
 
 @owner
 def exec(obj, flags) :
-    obj.message(flags[1][2], eval(flags[0]))
+    obj.message(flags[1][2], eval(flags[0], globals(), obj.__dict__))
