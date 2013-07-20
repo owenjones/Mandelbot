@@ -39,6 +39,7 @@ class Mandelbot(object) :
 
         except KeyError :
             net.reply("Command \"{}\" not registered".format(command), params)
+            return
 
         try :
             getattr(call[0], call[1])(net, params)
@@ -50,7 +51,7 @@ class Mandelbot(object) :
         utils.console("Shutting down...")
         message = message if message else "Mandelbot IRC Bot ({})".format(__version__)
         for n in self.networks :
-            if n.state.isConnected :
+            if n.isConnected :
                 n.quit(message)
 
         self.config.build(self.networks)
