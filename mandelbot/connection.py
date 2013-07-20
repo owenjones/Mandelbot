@@ -35,8 +35,8 @@ _output (str)              - default handler, just prints the response to the co
 """
 import socket, ssl, select, time
 from threading import Thread
-from . import utils
-from .exceptions import (InvalidConnectionInformation, InvalidHandler, NoSocket,
+from mandelbot import utils
+from mandelbot.exceptions import (InvalidConnectionInformation, InvalidHandler, NoSocket,
                          CouldNotConnect, CouldNotDisconnect, CouldNotSend,
                           CouldNotReceive, SocketClosedUnexpectedly)
 
@@ -99,7 +99,9 @@ class connection(object) :
             else :
                 self.sock.shutdown(socket.SHUT_WR)
                 self.sock.close()
-                self.thread.stop()
+
+                if not self.blocking :
+                    self.thread.stop()
 
         except AssertionError :
             raise NoSocket
