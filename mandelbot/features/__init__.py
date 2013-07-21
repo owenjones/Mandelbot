@@ -12,7 +12,12 @@ features = [feature.split(".")[0] for feature in os.listdir(os.getcwd() + "/mand
 
 def load(bot, feature) :
     f = importlib.import_module("mandelbot.features." + feature)
-    f.initalise(bot)
+    try :
+        f.initalise(bot)
+
+    except Exception as e :
+        utils.console("[\x02Feature Error\x02 {}] Error Loading Feature {}".format(feature, e))
+
     sys.modules[feature] = f
 
 def loadall(bot) :
