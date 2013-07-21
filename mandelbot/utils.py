@@ -14,16 +14,17 @@ def logtime(t = None) :
     t = t if t else time.time()
     return time.strftime("%H:%M:%S", time.localtime(t))
 
-def host(addr) :
-    """Splits a received host string into nickname, username and host"""
-    addr = addr[1:]
-    nsplit = addr.find("!")
-    hsplit = addr.find("@")
-    nick = addr[:nsplit] if (nsplit > 0) else addr
-    user = addr[(nsplit + 1):hsplit] if (nsplit > 0) else False
-    host = addr[(hsplit + 1):] if (hsplit > 0) else addr
+class host(object) :
 
-    return {"nick": nick, "user": user, "host": host}
+    def __init__(self, addr) :
+        """Splits a received host string into nickname, username and host"""
+        addr = addr[1:]
+        nsplit = addr.find("!")
+        hsplit = addr.find("@")
+        self.nick = addr[:nsplit] if (nsplit > 0) else addr
+        self.user = addr[(nsplit + 1):hsplit] if (nsplit > 0) else False
+        self.host = addr[(hsplit + 1):] if (hsplit > 0) else addr
+
 
 """
 Password Methods
@@ -65,8 +66,8 @@ class config(object) :
                 self.loaded = json.load(fp)
                 fp.close()
 
-        except (FileNotFoundError, ValueError) :
-            console("Invalid configuration file \"{}\", please run Mandelbot using the --build flag first".format(self.file))
+        except (FileNotFoundError, ValueError) as e :
+            console("Invalid configuration file \"{}\", please run Mandelbot using the --build flag first ({})".format(self.file, e))
             exit(console("Aborting Mandelbot launch..."))
 
     def build(self, networks = []) :

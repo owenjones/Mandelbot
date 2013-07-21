@@ -73,7 +73,6 @@ class network(state) :
                                                     False)
 
             self.connection.connect()
-            utils.console("Connection established ({})".format(self.config["name"]))
             self.connection.handler = (self, "parse")
 
             if self.config["password"] :
@@ -104,7 +103,7 @@ class network(state) :
             addr = utils.host(addr)
 
             if tgt[0] != "#" :
-                tgt = self.config["nickname"] if cmd == "MODE" else addr["nick"]
+                tgt = self.config["nickname"] if cmd == "MODE" else addr.nick
 
             msg = msg[1:] if msg[0] is ":" else msg
 
@@ -185,6 +184,7 @@ class network(state) :
 
     def _connected(self, params) :
         """When the bot has successfully connected"""
+        utils.console("Connection established ({})".format(self.config["name"]))
         self.identify()
         self.connected()
 
@@ -209,7 +209,7 @@ class network(state) :
 
     def _joined(self, params) :
         """When somebody joins a channel"""
-        if params[0]["nick"] == self.config["nickname"] :
+        if params[0].nick == self.config["nickname"] :
             utils.console("{} joined {}".format(self.config["nickname"], params[1]))
             self.channels[params[1].lower()].joined()
         else :
