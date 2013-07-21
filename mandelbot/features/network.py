@@ -52,13 +52,13 @@ def load(obj, flags) :
         for f in feature :
             try :
                 obj.bot.loadFeature(f)
-                obj.reply("Feature Loaded", flags)
+                obj.reply("\x02Loaded\x02", flags)
 
             except (ImportError, KeyError) :
-                obj.reply("[Feature Error] \"{}\" doesn't exist.".format(f), flags)
+                obj.reply("[\x02Feature Error\x02] \"{}\" doesn't exist.".format(f), flags)
 
             except Exception as e :
-               obj.reply("[Feature Error] {}: {}".format(f, e), flags)
+               obj.reply("[\x02Feature Error\x02 {}] {}".format(f, e), flags)
 
 @owner
 def run(obj, flags) :
