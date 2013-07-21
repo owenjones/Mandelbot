@@ -12,7 +12,8 @@ def initalise(bot) :
     bot.registerCommand("shutdown", (current, "shutdown"))
     bot.registerCommand("join", (current, "join"))
     bot.registerCommand("part", (current, "part"))
-    bot.registerCommand("!", (current, "exec"))
+    bot.registerCommand("load", (current, "load"))
+    bot.registerCommand("!", (current, "run"))
 
 @owner
 def quit(obj, flags) :
@@ -44,5 +45,24 @@ def part(obj, flags) :
     obj.channels[chan].part(message)
 
 @owner
-def exec(obj, flags) :
-    obj.message(flags[1][2], eval(flags[0], globals(), obj.__dict__))
+def load(obj, flags) :
+    if flags[0] :
+        feature = flags[0].split()
+
+        for f in feature :
+            try :
+                obj.bot.loadFeature(f)
+                obj.reply("Feature Loaded", flags)
+
+            except (ImportError, KeyError) :
+                obj.reply("[Feature Error] \"{}\" doesn't exist.".format(f), flags)
+
+            except Exception as e :
+               obj.reply("[Feature Error] {}: {}".format(f, e), flags)
+
+@owner
+def run(obj, flags) :
+    reply = exec(flags[0], globals(), obj.__dict__)
+
+    if reply :
+        obj.reply(reply, flags)

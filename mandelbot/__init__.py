@@ -21,7 +21,7 @@ class Mandelbot(object) :
         self.config = utils.config(conf)
         self.config.load()
         self.loadNetworks()
-        features.load(self)
+        features.loadall(self)
 
     def loadNetworks(self) :
         for n in self.config.networks :
@@ -29,6 +29,9 @@ class Mandelbot(object) :
             self.networks.append(net)
             if n["autoconnect"] :
                 net.connect()
+
+    def loadFeature(self, feature) :
+        features.reload(self, feature)
 
     def registerCommand(self, command, call) :
         self.commands[command] = call
