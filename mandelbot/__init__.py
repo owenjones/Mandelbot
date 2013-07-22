@@ -7,7 +7,7 @@ __copyright__ = "Copyright 2013 Owen Jones"
 
 from mandelbot import utils, network, features
 
-def run(config = None) :
+def run() :
     f = utils.flags()
     utils.console("{} {} is launching..".format(__title__, __version__))
 
