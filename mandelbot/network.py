@@ -190,7 +190,7 @@ class network(state) :
 
     def _nick(self, params) :
         """When a nickname is changed"""
-        if params[0]["nick"] == self.config["nickname"] :
+        if params[0].nick == self.config["nickname"] :
             self.config["nickname"] = params[1]
 
     def _mode(self, params) :
