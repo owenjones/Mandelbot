@@ -1,4 +1,4 @@
-# MANDELBOT
+# Mandelbot
 __title__ = "Mandelbot"
 __version__ = "0.1a"
 __author__ = "Owen Jones"
@@ -8,20 +8,28 @@ __copyright__ = "Copyright 2013 Owen Jones"
 from mandelbot import utils, network, features
 
 def run(config = None) :
+    f = utils.flags()
     utils.console("{} {} is launching..".format(__title__, __version__))
-    Mandelbot(config)
+
+    if f.build :
+        pass
+
+    else :
+        Mandelbot(f.config, f.verbose, f.features)
 
 class Mandelbot(object) :
     config = None
     networks = []
     commands = {}
 
-    def __init__(self, conf = None) :
+    def __init__(self, conf = False, v = 0, f = False) :
         conf = conf if conf else "config.json"
         self.config = utils.config(conf)
         self.config.load()
         self.loadNetworks()
-        features.loadall(self)
+
+        if f :
+            features.loadall(self)
 
     def loadNetworks(self) :
         for n in self.config.networks :
@@ -41,14 +49,14 @@ class Mandelbot(object) :
             call = self.commands[command]
 
         except KeyError :
-            net.reply("Command \"{}\" not registered".format(command), params)
+            net.reply("[\x02Command Error\x02] Command \"{}\" not registered.".format(command), params)
             return
 
         try :
             getattr(call[0], call[1])(net, params)
 
         except Exception as e :
-            net.reply("Error with command: [{}]".format(e), params)
+            net.reply("[\x02Command Error\x02 {}] {}.".format(command, e), params)
 
     def shutdown(self, message = None) :
         utils.console("Shutting down...")

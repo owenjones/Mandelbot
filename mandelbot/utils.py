@@ -1,11 +1,25 @@
-# MANDELBOT
+# Mandelbot
 """
 Provides basic utilties for running Mandelbot
 """
-import time, base64, json
+import time, base64, json, argparse
+
+def flags() :
+    """Parses the arguments Mandelbot is run with"""
+    p = argparse.ArgumentParser(description="Runs an instance of the Mandelbot IRC bot")
+    p.add_argument("-b", "--build", action="store_true", help="Creates a Mandelbot configuration file")
+    p.add_argument("-v", "--verbose", action="count", help="Display console messages during the running of Mandelbot")
+    p.add_argument("-f", "--features", action="store_true",
+                        help="Automatically load all the features in the features directory on Mandelbot startup")
+    p.add_argument("-i", "--interactive", action="store_true", help = "Run Mandelbot interactively")
+    p.add_argument("-c", "--config", dest="config",
+                   help="Specify a different Mandelbot configuration to use")
+
+    arg = p.parse_args()
+    return arg
 
 def console(message) :
-    """Desplays a formatted message on the terminal"""
+    """Displays a formatted message on the terminal"""
     formatted = "[{}] {}".format(logtime(), message)
     print(formatted)
 
@@ -67,7 +81,7 @@ class config(object) :
                 fp.close()
 
         except (FileNotFoundError, ValueError) as e :
-            console("Invalid configuration file \"{}\", please run Mandelbot using the --build flag first ({})".format(self.file, e))
+            console("Invalid configuration file \"{}\", please run Mandelbot using the --build flag first".format(self.file))
             exit(console("Aborting Mandelbot launch..."))
 
     def build(self, networks = []) :
