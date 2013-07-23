@@ -6,14 +6,14 @@ import time, base64, json, argparse, logging
 
 def flags() :
     """Parses the arguments Mandelbot is run with"""
-    p = argparse.ArgumentParser(description="Runs an instance of the Mandelbot IRC bot")
-    p.add_argument("-b", "--build", action="store_true", help="Creates a Mandelbot configuration file")
-    p.add_argument("-v", "--verbose", action="count", default = 0, help="Display console messages during the running of Mandelbot")
+    p = argparse.ArgumentParser(description="runs an instance of the Mandelbot IRC bot")
+    p.add_argument("-b", "--build", action="store_true", help="creates a configuration file")
+    p.add_argument("-v", "--verbose", action="count", default = 0, help="display running information (-vv for debugging)")
     p.add_argument("-f", "--features", action="store_true",
-                        help="Automatically load all the features in the features directory on Mandelbot startup")
-    p.add_argument("-i", "--interactive", action="store_true", help = "Run Mandelbot interactively")
+                        help="load all features startup")
+    p.add_argument("-i", "--interactive", action="store_true", help = "run Mandelbot interactively")
     p.add_argument("-c", "--config", dest="config",
-                   help="Specify a different Mandelbot configuration to use")
+                   help="specify a different configuration file to use")
 
     arg = p.parse_args()
     return arg
@@ -25,27 +25,23 @@ def loginit(verbosity) :
         2 : logging.DEBUG,
     }
 
+    try :
+        level = _LEVELS[verbosity]
+
+    except KeyError :
+        level = _LEVELS[2]
+
     l = log()
     h = logging.StreamHandler()
-    h.setLevel(_LEVELS[verbosity])
+    h.setLevel(level)
     f = logging.Formatter("[%(asctime)s] %(message)s")
     h.setFormatter(f)
     l.addHandler(h)
-    l.setLevel(_LEVELS[verbosity])
+    l.setLevel(level)
 
 def log() :
     """Returns the logger object for the bot"""
     return logging.getLogger()
-
-def console(message) :
-    """Displays a formatted message on the terminal"""
-    formatted = "[{}] {}".format(logtime(), message)
-    print(formatted)
-
-def logtime(t = None) :
-    """Returns the time in a log-friendly format"""
-    t = t if t else time.time()
-    return time.strftime("%H:%M:%S", time.localtime(t))
 
 class host(object) :
 
