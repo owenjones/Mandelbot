@@ -68,6 +68,16 @@ def run(obj, flags) :
         obj.reply(reply, flags)
 
 @user
+def quiet(obj, flags) :
+    if not obj.state.isQuiet :
+        obj.state.isQuiet = True
+        obj.reply("I'll be quiet now", flags)
+
+    else :
+        obj.state.isQuiet = False
+        obj.reply("I'll make nose now", flags)
+
+@user
 def message(obj, flags) :
     p = flags[0].split(" ", 1)
     target = flags[1][2] if p[0] == "chan" else p[0]

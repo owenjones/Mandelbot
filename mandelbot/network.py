@@ -17,6 +17,7 @@ class state(object) :
     isConnected = False
     isWelcome = False
     isIdentified = False
+    isQuiet = False
 
     def connected(self) :
         self.isConnected = True
