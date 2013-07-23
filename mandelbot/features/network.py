@@ -4,9 +4,9 @@ Mandelbot Basic Network Commands
 """
 import sys
 from mandelbot.decorators import owner, user
-from mandelbot import utils
+from mandelbot import utils, features
 
-def initalise(bot) :
+def initalize(bot) :
     current = sys.modules[__name__]
     bot.registerCommand("quit", (current, "quit"))
     bot.registerCommand("shutdown", (current, "shutdown"))
@@ -14,6 +14,7 @@ def initalise(bot) :
     bot.registerCommand("part", (current, "part"))
     bot.registerCommand("load", (current, "load"))
     bot.registerCommand("!", (current, "run"))
+    bot.registerCommand("tell", (current, "message"))
 
 @owner
 def quit(obj, flags) :
@@ -51,8 +52,7 @@ def load(obj, flags) :
 
         for f in feature :
             try :
-                obj.bot.loadFeature(f)
-                obj.reply("\x02Loaded\x02", flags)
+                features.load(obj.bot, f)
 
             except (ImportError, KeyError) :
                 obj.reply("[\x02Feature Error\x02] \"{}\" doesn't exist.".format(f), flags)
@@ -62,7 +62,13 @@ def load(obj, flags) :
 
 @owner
 def run(obj, flags) :
-    reply = exec(flags[0], globals(), obj.__dict__)
+    reply = exec(flags[0])
 
     if reply :
         obj.reply(reply, flags)
+
+@user
+def message(obj, flags) :
+    p = flags[0].split(" ", 1)
+    target = flags[1][2] if p[0] == "chan" else p[0]
+    obj.message(target, p[1])

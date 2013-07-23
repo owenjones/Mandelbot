@@ -2,23 +2,24 @@
 """
 Howzat! (Cricket Scores)
 """
-import sys
+import sys, time
 from threading import Timer
 
 score = []
 thread = None
 
-def initalise(bot) :
+def initalize(bot) :
     global thread
     bot.registerCommand("howzat", (sys.modules[__name__], "howzat"))
-    #thread = Timer(120, "fetcher")
+    thread = Timer(120, "fetcher")
 
 def fetcher() :
     global score, thread
+    
 
 def howzat(obj, flags) :
     global score, thread
-    if flags and flags[0].lower in ("stop", "exit") :
+    if flags[0] and flags[0].lower in ("stop", "exit") :
         scorethread.stop()
         return
 
@@ -26,6 +27,6 @@ def howzat(obj, flags) :
         reply = score[-1:]
 
     else :
-        "[Error] No Scores Recorded"
+        reply = "[Howzat!] No Scores Recorded"
 
-    obj.reply(flags, reply)
+    obj.reply(reply, flags)
