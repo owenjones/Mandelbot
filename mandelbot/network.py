@@ -89,7 +89,9 @@ class network(state) :
 
     def parse(self, raw) :
         """Parses a received message from the network"""
-        parts = raw.strip().split(" ", 3)
+        raw = raw.strip()
+        utils.log().debug("Received: {}".format(raw))
+        parts = raw.split(" ", 3)
         if parts[0] == "PING" :
             self.event("PING", parts[1])
 
@@ -111,6 +113,7 @@ class network(state) :
 
     def send(self, message) :
         """Sends a message to the network"""
+        utils.log().debug("Sent: {}".format(message))
         message = message + self.delimiter
         self.connection.send(message)
 
