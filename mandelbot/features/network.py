@@ -14,6 +14,7 @@ def initalize(bot) :
     bot.registerCommand("part", (current, "part"))
     bot.registerCommand("load", (current, "load"))
     bot.registerCommand("!", (current, "run"))
+    bot.registerCommand("quiet", (current, "quiet"))
     bot.registerCommand("tell", (current, "message"))
 
 @owner
@@ -69,13 +70,12 @@ def run(obj, flags) :
 
 @user
 def quiet(obj, flags) :
-    if not obj.state.isQuiet :
-        obj.state.isQuiet = True
-        obj.reply("I'll be quiet now", flags)
+    if not obj.isQuiet :
+        obj.reply("Ok, I'll be quiet", flags)
+        obj.isQuiet = True
 
     else :
-        obj.state.isQuiet = False
-        obj.reply("I'll make nose now", flags)
+        obj.isQuiet = False
 
 @user
 def message(obj, flags) :

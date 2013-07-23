@@ -160,7 +160,8 @@ class network(state) :
     # General Message Types
     def message(self, target, message) :
         """Sends a message to a target on the network"""
-        self.send("PRIVMSG {} :{}".format(target, message))
+        if not self.isQuiet :
+            self.send("PRIVMSG {} :{}".format(target, message))
 
     def notice(self, target, message) :
         """Sends a notice to a target on the network"""
