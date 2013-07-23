@@ -35,8 +35,7 @@ def loginit(verbosity) :
 
 def log() :
     """Returns the logger object for the bot"""
-    l = logging.getLogger()
-    return l
+    return logging.getLogger()
 
 def console(message) :
     """Displays a formatted message on the terminal"""
