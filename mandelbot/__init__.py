@@ -8,7 +8,7 @@ from mandelbot import utils, network, features
 
 def run() :
     f = utils.flags()
-    utils.log().setLevel(utils._LEVELS[f.verbose])
+    utils.loginit(f.verbose)
     utils.log().info("{} {} is launching..".format(__title__, __version__))
 
     if f.build :

@@ -18,15 +18,24 @@ def flags() :
     arg = p.parse_args()
     return arg
 
-_LEVELS = {
-    0 : logging.ERROR,
-    1 : logging.INFO,
-    2 : logging.NOTSET,
-}
+def loginit(verbosity) :
+    _LEVELS = {
+        0 : logging.ERROR,
+        1 : logging.INFO,
+        2 : logging.DEBUG,
+    }
 
-def log(use = "mandelbot") :
+    l = log()
+    h = logging.StreamHandler()
+    h.setLevel(_LEVELS[verbosity])
+    f = logging.Formatter("[%(asctime)s] %(message)s")
+    h.setFormatter(f)
+    l.addHandler(h)
+    l.setLevel(_LEVELS[verbosity])
+
+def log() :
     """Returns the logger object for the bot"""
-    l = logging.getLogger(use)
+    l = logging.getLogger()
     return l
 
 def console(message) :
