@@ -2,7 +2,7 @@
 """
 Mandelbot Features
 
-Imports all the Mandelbot features, and registers their callbacks with the bot
+TODO: Fix path in listdir()
 """
 from mandelbot import utils
 import os, sys, imp, importlib
@@ -11,7 +11,7 @@ features = [feature.split(".")[0] for feature in os.listdir(os.getcwd() + "/mand
             if feature.endswith(".py") and feature != "__init__.py"]
 
 def load(bot, feature) :
-    """Reloads a Mandelbot feature"""
+    """Loads a single Mandelbot feature"""
     try :
         f = sys.modules[feature]
 
