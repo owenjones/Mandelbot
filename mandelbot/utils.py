@@ -2,13 +2,13 @@
 """
 Provides basic utilties for running Mandelbot
 """
-import time, base64, json, argparse
+import time, base64, json, argparse, logging
 
 def flags() :
     """Parses the arguments Mandelbot is run with"""
     p = argparse.ArgumentParser(description="Runs an instance of the Mandelbot IRC bot")
     p.add_argument("-b", "--build", action="store_true", help="Creates a Mandelbot configuration file")
-    p.add_argument("-v", "--verbose", action="count", help="Display console messages during the running of Mandelbot")
+    p.add_argument("-v", "--verbose", action="count", default = 0, help="Display console messages during the running of Mandelbot")
     p.add_argument("-f", "--features", action="store_true",
                         help="Automatically load all the features in the features directory on Mandelbot startup")
     p.add_argument("-i", "--interactive", action="store_true", help = "Run Mandelbot interactively")
@@ -17,6 +17,17 @@ def flags() :
 
     arg = p.parse_args()
     return arg
+
+_LEVELS = {
+    0 : logging.ERROR,
+    1 : logging.INFO,
+    2 : logging.NOTSET,
+}
+
+def log(use = "mandelbot") :
+    """Returns the logger object for the bot"""
+    l = logging.getLogger(use)
+    return l
 
 def console(message) :
     """Displays a formatted message on the terminal"""
@@ -81,8 +92,9 @@ class config(object) :
                 fp.close()
 
         except (FileNotFoundError, ValueError) as e :
-            console("Invalid configuration file \"{}\", please run Mandelbot using the --build flag first".format(self.file))
-            exit(console("Aborting Mandelbot launch..."))
+            log().critical("Invalid configuration file \"{}\", please run Mandelbot using the --build flag first".format(self.file))
+            log().info("Aborting Mandelbot launch.")
+            exit()
 
     def build(self, networks = []) :
         """Takes a list of network objects, strips the configurations
@@ -105,10 +117,10 @@ class config(object) :
             self._save(conf)
 
         except AssertionError :
-            console("Building configuration failed - invalid data structure")
+            log().error("Building configuration failed - invalid data structure")
 
         except Exception as e :
-            console("Building configuration failed - {}".format(e))
+            log().error("Building configuration failed - {}".format(e))
 
     def _save(self, new) :
         """Replaces the current configuration file with an updated one"""
@@ -117,7 +129,7 @@ class config(object) :
                 json.dump(new, fp)
                 fp.close()
 
-            console("Configuration saved as \"{}\"".format(self.file))
+            log().info("Configuration saved as \"{}\"".format(self.file))
 
         except Exception as e :
-            console("Saving configuration failed - {}".format(e))
+            log().error("Saving configuration failed - {}".format(e))

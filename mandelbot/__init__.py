@@ -4,25 +4,25 @@ __version__ = "0.1a"
 __author__ = "Owen Jones"
 __license__ = "Apache 2.0"
 __copyright__ = "Copyright 2013 Owen Jones"
-
 from mandelbot import utils, network, features
 
 def run() :
     f = utils.flags()
-    utils.console("{} {} is launching..".format(__title__, __version__))
+    utils.log().setLevel(utils._LEVELS[f.verbose])
+    utils.log().info("{} {} is launching..".format(__title__, __version__))
 
     if f.build :
         pass
 
     else :
-        Mandelbot(f.config, f.verbose, f.features)
+        Mandelbot(f.config, f.features)
 
 class Mandelbot(object) :
     config = None
     networks = []
     commands = {}
 
-    def __init__(self, conf = False, v = 0, f = False) :
+    def __init__(self, conf = False, f = False) :
         conf = conf if conf else "config.json"
         self.config = utils.config(conf)
         self.config.load()
@@ -31,15 +31,16 @@ class Mandelbot(object) :
         if f :
             features.loadall(self)
 
+        else :
+            # These are the important ones..
+            features.load(self, "network")
+
     def loadNetworks(self) :
         for n in self.config.networks :
             net = network.network(n, self)
             self.networks.append(net)
             if n["autoconnect"] :
                 net.connect()
-
-    def loadFeature(self, feature) :
-        features.reload(self, feature)
 
     def registerCommand(self, command, call) :
         self.commands[command] = call
@@ -59,7 +60,7 @@ class Mandelbot(object) :
             net.reply("[\x02Command Error\x02 {}] {}.".format(command, e), params)
 
     def shutdown(self, message = None) :
-        utils.console("Shutting down...")
+        utils.log().info("Shutting down...")
         message = message if message else "Mandelbot IRC Bot ({})".format(__version__)
         for n in self.networks :
             if n.isConnected :

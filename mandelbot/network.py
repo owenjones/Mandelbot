@@ -62,7 +62,7 @@ class network(state) :
             getattr(self, call)(params)
 
         except Exception as e :
-            utils.console("Error with builtin: [{}]".format(e))
+            utils.log().error("Error with builtin: [{}]".format(e))
 
     def connect(self) :
         """Connects to the IRC network"""
@@ -82,10 +82,10 @@ class network(state) :
             self.nick()
 
         except InvalidConnectionInformation :
-            utils.console("Connection information for network \"{}\" is invalid.".format(self.config["name"]))
+            utils.log().error("Connection information for network \"{}\" is invalid.".format(self.config["name"]))
 
         except CouldNotConnect :
-            utils.console("Could not connect to network \"{}\".".format(self.config["name"]))
+            utils.log().error("Could not connect to network \"{}\".".format(self.config["name"]))
 
     def parse(self, raw) :
         """Parses a received message from the network"""
@@ -144,7 +144,7 @@ class network(state) :
     def identify(self, params = None) :
         """Identifies the bot on the network"""
         if self.config["nickpass"] :
-            utils.console("Identifying as {} on {}...".format(self.config["nickname"],
+            utils.log().info("Identifying as {} on {}...".format(self.config["nickname"],
                                                               self.config["name"]))
 
             self.send("PRIVMSG {} :identify {} {}".format(self.config["nickserv"],
@@ -184,7 +184,7 @@ class network(state) :
 
     def _connected(self, params) :
         """When the bot has successfully connected"""
-        utils.console("Connection established ({})".format(self.config["name"]))
+        utils.log().info("Connection established ({})".format(self.config["name"]))
         self.identify()
         self.connected()
 
@@ -201,7 +201,7 @@ class network(state) :
 
             for m in modes[1:] :
                 if m == "r" and action == "append" :
-                    utils.console("...identified")
+                    utils.log().info("Identified on {}".format(self.config["name"]))
                     self.identified()
                     self.joinChannels()
 
@@ -210,7 +210,7 @@ class network(state) :
     def _joined(self, params) :
         """When somebody joins a channel"""
         if params[0].nick == self.config["nickname"] :
-            utils.console("{} joined {}".format(self.config["nickname"], params[1]))
+            utils.log().info("{} joined {}".format(self.config["nickname"], params[1]))
             self.channels[params[1].lower()].joined()
         else :
             self.channels[params[1].lower()].users.append(params[2])
@@ -219,7 +219,7 @@ class network(state) :
         """When somebody is kicked from a channel"""
         kicked = params[3].split(" ", 1)
         if kicked[0] == self.config["nickname"] :
-            utils.console("{} kicked from {} on {} ({})".format(self.config["nickname"],
+            utils.log().info("{} kicked from {} on {} ({})".format(self.config["nickname"],
                                                                 params[2],
                                                                 self.config["name"],
                                                                 kicked[1][1:]))
