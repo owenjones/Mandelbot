@@ -101,13 +101,13 @@ class config(object) :
 
         except (FileNotFoundError, ValueError) as e :
             log().critical("Invalid configuration file \"{}\", please run Mandelbot using the --build flag first".format(self.file))
-            log().info("Aborting Mandelbot launch.")
+            log().warning("Aborting Mandelbot launch.")
             exit()
 
     def build(self, networks = []) :
         """Takes a list of network objects, strips the configurations
         from each and packages them in a dictionary to be stored"""
-        console("Building new configuration...")
+        log().info("Building new configuration...")
 
         try :
             assert(isinstance(networks, list))
