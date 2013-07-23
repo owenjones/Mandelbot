@@ -57,7 +57,9 @@ class Mandelbot(object) :
             getattr(call[0], call[1])(net, params)
 
         except Exception as e :
-            net.reply("[\x02Command Error\x02 {}] {}.".format(command, e), params)
+            error = "[\x02Command Error\x02 {}] {}.".format(command, e)
+            net.reply(error, params)
+            utils.log().error(error)
 
     def shutdown(self, message = None) :
         utils.log().info("Shutting down...")
