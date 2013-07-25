@@ -1,4 +1,4 @@
-# MANDELBOT
+# Mandelbot
 """
 Provides methods for initiating a connection and sending/receiving messages at the socket level.
 
@@ -17,28 +17,10 @@ delimiter (str)            - the delimiter for data received by from the socket,
 
 Internal Properties:
 _buffer (list)             - contains the messages that are waiting to be sent to the socket
-
-Methods:
-__init__  (str,int,bool)   - creates a socket
-connect                    - initiates a connection to the socket and launches the checking thread
-close                      - ends the socket connection
-send (str)                 - adds a message to the outgoing message buffer
-
-Internal Methods:
-_register                  - creates a thread that handles checking if data can be sent and received
-                             (and then calls _send and _receive)
-_send                      - runs through the message buffer and sends messages to the socket
-_receive                   - accepts data from the socket and splits it into messages,
-                             then hands these off to the response handler
-_handle (str)              - passes the message on to the handler
-_output (str)              - default handler, just prints the response to the console
 """
-import socket, ssl, select, time
-from threading import Thread
+import socket, ssl, select, time, threading
 from mandelbot import utils
-from mandelbot.exceptions import (InvalidConnectionInformation, InvalidHandler, NoSocket,
-                         CouldNotConnect, CouldNotDisconnect, CouldNotSend,
-                          CouldNotReceive, SocketClosedUnexpectedly)
+from mandelbot.exceptions import *
 
 class connection(object) :
     sock = None
@@ -53,6 +35,7 @@ class connection(object) :
     _buffer = []
 
     def __init__(self, server, port = 80, usessl = False, blocking = True) :
+        """Creates a new socket"""
         try :
             assert isinstance(server, str)
             assert isinstance(port, int)
@@ -75,6 +58,7 @@ class connection(object) :
             raise InvalidConnectionInformation
 
     def connect(self) :
+        """Initiates a connection to the socket and launches the checking thread"""
         try :
             assert isinstance(self.sock, socket.socket)
             self.sock.connect((self.server, self.port))
@@ -90,6 +74,8 @@ class connection(object) :
             raise CouldNotConnect(str(e))
 
     def close(self, graceful = False) :
+        """Ends the socket connection (finishes sending message
+        buffer first if graceful is specified)"""
         try :
             assert isinstance(self.sock, socket.socket)
 
@@ -110,6 +96,7 @@ class connection(object) :
             raise CouldNotDisconnect(str(e))
 
     def send(self, data) :
+        """Adds a message to the outgoing message buffer"""
         try :
             assert isinstance(self.sock, socket.socket)
             self._buffer.append(data)
@@ -118,6 +105,8 @@ class connection(object) :
             raise NoSocket
 
     def _register(self) :
+        """Creates a thread that handles checking if data can be sent and received
+        (and then calls _send and _receive)"""
         try :
             assert isinstance(self.sock, socket.socket)
             self.thread = _SocketConditions(self)
@@ -127,6 +116,7 @@ class connection(object) :
             raise NoSocket
 
     def _send(self) :
+        """Runs through the message buffer and sends messages to the socket"""
         try :
             if self.closing and not self._buffer :
                 self.close()
@@ -142,6 +132,8 @@ class connection(object) :
             raise CouldNotSend(str(e))
 
     def _receive(self) :
+        """Accepts data from the socket and splits it into messages,
+        then hands these off to the response handler"""
         try :
             message = ""
 
@@ -167,6 +159,7 @@ class connection(object) :
             raise CouldNotReceive(str(e))
 
     def _handle(self, message) :
+        """Passes the message on to the handler"""
         try :
             assert isinstance(self.handler, (str, tuple, list))
 
@@ -184,6 +177,7 @@ class connection(object) :
             raise InvalidHandler
 
     def _output(self, message) :
+        """Default handler, just prints the response to the console"""
         message = message[:-1]
         utils.console(message)
 
@@ -191,12 +185,12 @@ class connection(object) :
 _SocketConditions - Launches a thread that repeatedly checks if the socket is ready to send or receive data
                     then launches the _send and _receive methods as appropriate
 """
-class _SocketConditions(Thread) :
+class _SocketConditions(threading.Thread) :
     conn = None
     sock = None
 
     def __init__(self, conn) :
-        Thread.__init__(self)
+        threading.Thread.__init__(self)
         self.conn = conn
         self.sock = self.conn.sock
 
