@@ -1,13 +1,11 @@
 # Mandelbot
 """
 Mandelbot Features
-
-TODO: Fix path in listdir()
 """
 from mandelbot import utils
 import os, sys, imp, importlib
 
-features = [feature.split(".")[0] for feature in os.listdir(os.getcwd() + "/mandelbot/features")
+features = [feature.split(".")[0] for feature in os.listdir(os.path.abspath(__file__)[:-11])
             if feature.endswith(".py") and feature != "__init__.py"]
 
 def load(bot, feature) :
@@ -20,11 +18,11 @@ def load(bot, feature) :
 
     if f :
         imp.reload(f)
-        f.initalize(bot)
+        initalize(bot, f)
 
     else :
         f = importlib.import_module("mandelbot.features." + feature)
-        f.initalize(bot)
+        initalize(bot, f)
         sys.modules[feature] = f
 
 def loadall(bot) :
@@ -35,7 +33,7 @@ def loadall(bot) :
 def initalize(bot, feature) :
     """Initalises a Mandelbot feature"""
     try :
-        feature.initalize(bot)
+        getattr(feature, initalize)(bot)
 
     except Exception as e :
-        utils.log().error("[\x02Feature Error\x02 {}] Error Loading Feature {}".format(feature, e))
+        utils.log().error("[Feature Error {}] Error Loading Feature {}".format(feature, e))
