@@ -9,7 +9,6 @@ server (str)               - the server to connect to
 port (int)                 - the port to connect to on the server
 ssl (bool)                 - whether to initiate an SSL connection or not
 blocking (bool)            - whether the socket should be blocking or not
-closing (bool)             - triggered when the socket is preparing to close
 handler (tuple, list)      - the handler that received responses should be passed to
                            - defined as (namespace, method); must take a single string argument
 delimiter (str)            - the delimiter for data received by from the socket,
@@ -17,6 +16,7 @@ delimiter (str)            - the delimiter for data received by from the socket,
 
 Internal Properties:
 _buffer (list)             - contains the messages that are waiting to be sent to the socket
+_closing (bool)             - triggered when the socket is preparing to close
 """
 import socket, ssl, select, time, threading
 from mandelbot import utils
@@ -29,10 +29,11 @@ class connection(object) :
     port = None
     ssl = None
     blocking = None
-    closing = False
     handler = "_output"
     delimiter = "\n"
+
     _buffer = []
+    _closing = False
 
     def __init__(self, server, port = 80, usessl = False, blocking = True) :
         """Creates a new socket"""
@@ -79,8 +80,8 @@ class connection(object) :
         try :
             assert isinstance(self.sock, socket.socket)
 
-            if graceful and not self.closing :
-                self.closing = True
+            if graceful and not self._closing :
+                self._closing = True
 
             else :
                 self.sock.shutdown(socket.SHUT_WR)
@@ -118,7 +119,7 @@ class connection(object) :
     def _send(self) :
         """Runs through the message buffer and sends messages to the socket"""
         try :
-            if self.closing and not self._buffer :
+            if self._closing and not self._buffer :
                 self.close()
 
             elif self._buffer :
