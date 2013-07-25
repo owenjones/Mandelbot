@@ -33,7 +33,7 @@ def loadall(bot) :
 def initalize(bot, feature) :
     """Initalises a Mandelbot feature"""
     try :
-        getattr(feature, initalize)(bot)
+        feature.initalize(bot)
 
     except Exception as e :
         utils.log().error("[Feature Error {}] Error Loading Feature {}".format(feature, e))
