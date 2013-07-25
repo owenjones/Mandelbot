@@ -4,11 +4,12 @@ __version__ = "0.1a"
 __author__ = "Owen Jones"
 __license__ = "Apache 2.0"
 __copyright__ = "Copyright 2013 Owen Jones"
+
 from mandelbot import utils, network, features
 
 def run() :
     f = utils.flags()
-    utils.loginit(f.verbose)
+    utils.logInit(f.verbose)
     utils.log().info("{} {} is launching..".format(__title__, __version__))
 
     if f.build :

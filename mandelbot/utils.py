@@ -2,7 +2,7 @@
 """
 Provides basic utilties for running Mandelbot
 """
-import time, base64, json, argparse, logging
+import os, sys, time, base64, json, argparse, logging
 
 def flags() :
     """Parses the arguments Mandelbot is run with"""
@@ -18,7 +18,7 @@ def flags() :
     arg = p.parse_args()
     return arg
 
-def loginit(verbosity) :
+def logInit(verbosity) :
     _LEVELS = {
         0 : logging.ERROR,
         1 : logging.INFO,
@@ -79,7 +79,7 @@ class config(object) :
 
     def __init__(self, file = None) :
         """Initiates the configuration session using the specified file"""
-        self.file = file
+        self.file = os.path.abspath(__file__)[:-8] + "../" + file
 
     def __getattr__(self, name) :
         try :
