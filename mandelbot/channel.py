@@ -3,12 +3,16 @@
 Channel model
 """
 class channel(object) :
-    name = None
     network = None
+
+    name = None
     key = None
-    modes = []
-    users = []
-    hasjoined = False
+
+    channelModes = []
+    users = {}
+
+    hasJoined = False
+    isQuiet = False
 
     def __init__(self, network, name, key) :
         self.network = network
@@ -20,12 +24,17 @@ class channel(object) :
         self.network.send(c)
 
     def joined(self) :
-        self.hasjoined = True
+        self.hasJoined = True
+        self.network.send("WHO {}".format(self.name))
 
     def part(self, message = None) :
         c = "PART {} {}".format(self.name, message) if message else "PART {}".format(self.name)
         self.network.send(c)
-        self.hasjoined = False
+        self.hasJoined = False
 
-    def isOp(self) :
-        return True if ("@", "~", "%") in self.modes else False
+    def isOp(self, nick = False) :
+        matched = [m for m in self.userModes if m in ("o", "a", "q", "h")]
+        return True if matched else False
+
+    def hasVoice(self) :
+        return True if "v" in self.userModes else False
