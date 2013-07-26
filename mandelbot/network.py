@@ -294,7 +294,6 @@ class network(state) :
         """Creates a new timer"""
         if self.timer :
             self.timer.cancel()
-            self.timer = None
 
         self.timer = threading.Timer(time, call, args)
         self.timer.start()
