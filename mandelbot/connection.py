@@ -180,7 +180,7 @@ class connection(object) :
     def _output(self, message) :
         """Default handler, just prints the response to the console"""
         message = message[:-1]
-        utils.console(message)
+        utils.log().info(message)
 
 """
 _SocketConditions - Launches a thread that repeatedly checks if the socket is ready to send or receive data
@@ -196,19 +196,25 @@ class _SocketConditions(threading.Thread) :
         self.sock = self.conn.sock
 
     def run(self) :
-        while self.sock :
-            read, write, error = select.select([self.sock], [self.sock], [], 0)
+        try :
+            while self.sock :
+                read, write, error = select.select([self.sock], [self.sock], [], 0)
 
-            if read :
-                self.conn._receive()
+                if read :
+                    self.conn._receive()
 
-            if write :
-                self.conn._send()
+                if write :
+                    self.conn._send()
 
-            time.sleep(0.1)
+                time.sleep(0.1)
 
-        else :
-            return
+            else :
+                return
+
+        except (TimeoutError, socket.timeout) :
+            # Timeouts are handled by the network, being passed timeoutexceptions
+            # from here just complicates things.
+            pass
 
     def stop(self) :
         self.sock = False
