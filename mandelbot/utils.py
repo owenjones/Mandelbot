@@ -31,11 +31,13 @@ def logInit(verbosity) :
     except KeyError :
         level = _LEVELS[2]
 
-    l = log()
     h = logging.StreamHandler()
     h.setLevel(level)
+
     f = logging.Formatter("[%(asctime)s] %(message)s")
     h.setFormatter(f)
+
+    l = log()
     l.addHandler(h)
     l.setLevel(level)
 

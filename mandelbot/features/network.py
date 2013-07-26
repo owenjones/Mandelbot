@@ -63,15 +63,13 @@ def load(obj, flags) :
 
 @owner
 def run(obj, flags) :
-    reply = exec(flags[0])
-
-    if reply :
-        obj.reply(reply, flags)
+    reply = eval(flags[0])
+    obj.reply(reply, flags)
 
 @user
 def quiet(obj, flags) :
     if not obj.isQuiet :
-        obj.reply("Ok, I'll be quiet", flags)
+        obj.reply("Yes, master.", flags)
         obj.isQuiet = True
 
     else :
