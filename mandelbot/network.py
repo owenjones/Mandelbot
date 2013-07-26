@@ -23,6 +23,8 @@ class state(object) :
     isReconnecting = False
     isTimingOut = False
     isTimedOut = False
+    isQuitting = False
+
     isIdentified = False
     isQuiet = False
     currentNickname = False
@@ -33,6 +35,8 @@ class state(object) :
         self.isReconnecting = False
         self.isTimingOut = False
         self.isTimedOut = False
+        self.isQuitting = False
+
         self.isIdentified = False
         self.isQuiet = False
         self.currentNickname = False
@@ -156,6 +160,8 @@ class network(state) :
         """Gracefully closes the connection to this network"""
         q = "QUIT :{}".format(message) if message else "QUIT"
         self.send(q)
+        self.isQuitting = True
+        self.timer.cancel()
         self.connection.close(True)
 
     def shutdown(self, message) :
@@ -164,7 +170,7 @@ class network(state) :
 
     # Nickname Managment
     def nick(self, nick = None) :
-        """Changes the bots nickname on the network"""
+        """Changes the bot's nickname on the network"""
         nick = nick if nick else self.config["nickname"]
         self.currentNickname = nick
         self.send("NICK :{}".format(nick))
@@ -172,8 +178,8 @@ class network(state) :
     def identify(self, params = None) :
         """Identifies the bot on the network"""
         if self.config["nickpass"] :
-            utils.log().info("Identifying as {} on {}...".format(self.config["nickname"],
-                                                              self.config["name"]))
+            utils.log().info("[{}] Identifying as {}...".format(self.config["name"],
+                                                              self.config["nickname"]))
 
             self.send("PRIVMSG {} :identify {} {}".format(self.config["nickserv"],
                                                           self.config["nickname"],
@@ -230,7 +236,7 @@ class network(state) :
     def _identified(self, params) :
         """We're now identified"""
         utils.log().info("[{}] Identified.".format(self.config["name"]))
-        self.identified()
+        self.isIdentified = True
 
         # Required if nickname needed to be changed during a reconnect
         if params[2] != self.config["nickname"] :
@@ -295,9 +301,10 @@ class network(state) :
 
     def _resetTimeout(self) :
         """Resets the timer that checks for disconnects"""
-        self.isTimingOut = False
-        self.isTimedOut = False
-        self._timer(60, self._timeoutCheck)
+        if not self.isQuitting :
+            self.isTimingOut = False
+            self.isTimedOut = False
+            self._timer(60, self._timeoutCheck)
 
     def _timeoutCheck(self) :
         """Occurs when the connection has been quiet for too long"""
