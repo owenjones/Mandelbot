@@ -34,7 +34,7 @@ class Mandelbot(object) :
 
         else :
             # These are the important ones..
-            features.load(self, "network")
+            features.load(self, "core")
 
     def loadNetworks(self) :
         for n in self.config.networks :
@@ -60,11 +60,11 @@ class Mandelbot(object) :
         except Exception as e :
             error = "[\x02Command Error\x02 {}] {}.".format(command, e)
             net.reply(error, params)
-            utils.log().error(error)
+            utils.log().error("[{}]".format(net.config["name"]) + error)
 
     def shutdown(self, message = None) :
         utils.log().info("Shutting down...")
-        message = message if message else "Mandelbot IRC Bot ({})".format(__version__)
+        message = message if message else "Mandelbot IRC Bot {}".format(__version__)
         for n in self.networks :
             if n.isConnected :
                 n.quit(message)
