@@ -8,7 +8,7 @@ TODO:
 * Allow quiet mode to be applied on a per-channel basis
 * Work out better timeout metrics
 """
-import threading
+import threading, time
 from mandelbot import utils, connection, channel
 from mandelbot.exceptions import *
 
@@ -159,6 +159,7 @@ class network(state) :
     def quit(self, message = False) :
         """Gracefully closes the connection to this network"""
         q = "QUIT :{}".format(message) if message else "QUIT"
+        utils.log().info("[{}] Quitting.".format(self.config["name"]))
         self.send(q)
         self.isQuitting = True
         self.timer.cancel()
@@ -220,9 +221,9 @@ class network(state) :
         """When PRIVMSG and NOTICE are received"""
         msg = params[3]
 
-        if msg[0] == self.config["command"] :
+        if msg.startswith(self.config["command"]) :
             parts = msg.split(" ", 1)
-            cmd = parts[0][1:]
+            cmd = parts[0][len(self.config["command"]):]
             flags = parts[1] if (len(parts) > 1) else False
 
             self.bot.triggerCommand(self, cmd, (flags, params))
@@ -274,7 +275,7 @@ class network(state) :
     def _joined(self, params) :
         """When somebody joins a channel"""
         if params[0].nick == self.currentNickname :
-            utils.log().info("[{}] Joined {}".format(self.config["name"], params[1]))
+            utils.log().info("[{}] Joined {}.".format(self.config["name"], params[1]))
             self.channels[params[1].lower()].joined()
         else :
             #self.channels[params[1].lower()].users[params[2].nick] =
@@ -284,7 +285,7 @@ class network(state) :
         """When somebody is kicked from a channel"""
         kicked = params[3].split(" ", 1)
         if kicked[0] == self.currentNickname :
-            utils.log().info("[{}] Kicked from {} ({}).".format(self.config["name"],
+            utils.log().info("[{}] Kicked from {}. ({})".format(self.config["name"],
                                                                 params[2],
                                                                 kicked[1][1:]))
             self.channels[params[2].lower()].join()
@@ -325,10 +326,47 @@ class network(state) :
         self.isReconnecting = True
 
         if n < 5 :
-            self._timer(60, self._reconnect, (n+1))
             utils.log().warning("[{}] Attempting to reconnect ({} of 5)".format(self.config["name"], n+1))
+            self._timer(30, self._reconnect, (n+1))
             self.connect()
 
         else :
             utils.log().warning("[{}] Could not reconnect. Will try again shortly.".format(self.config["name"]))
-            self._timer(300, self._reconnect)
+            self._timer(120, self._reconnect)
+
+"""
+Considering an alternative timeout checking method..
+Just gonna keep this here for future reference.
+
+class _TimeoutCheck(threading.Thread) :
+    network = None
+    running = False
+    last = None
+    timingOut = False
+
+    def __init__(self, network) :
+        threading.Thread.__init__(self)
+        self.network = network
+
+    def run(self) :
+        running = True
+
+        while self.running :
+            sleep(60)
+            now = time.time()
+
+            if (self.last - now > 60) :
+                if not self.timingOut :
+                    self.timingOut = True
+                    self.network._timeoutCheck()
+
+                else :
+                    self.network._timeout()
+
+    def reset(self) :
+        self.timingOut = False
+        self.last = time.time()
+
+    def stop(self) :
+        self.running = False
+"""
