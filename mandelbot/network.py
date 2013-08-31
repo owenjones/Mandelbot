@@ -9,8 +9,8 @@ TODO:
 * Work out better timeout metrics
 """
 import threading, time
-from mandelbot import utils, connection, channel
-from mandelbot.exceptions import *
+from . import utils, connection, channel
+from .exceptions import *
 
 """
 Network States
@@ -304,7 +304,7 @@ class network(state) :
         if not self.isQuitting :
             self.isTimingOut = False
             self.isTimedOut = False
-            self._timer(60, self._timeoutCheck)
+            self._timer(120, self._timeoutCheck)
 
     def _timeoutCheck(self) :
         """Occurs when the connection has been quiet for too long"""
@@ -333,40 +333,3 @@ class network(state) :
         else :
             utils.log().warning("[{}] Could not reconnect. Will try again shortly.".format(self.config["name"]))
             self._timer(120, self._reconnect)
-
-"""
-Considering an alternative timeout checking method..
-Just gonna keep this here for future reference.
-
-class _TimeoutCheck(threading.Thread) :
-    network = None
-    running = False
-    last = None
-    timingOut = False
-
-    def __init__(self, network) :
-        threading.Thread.__init__(self)
-        self.network = network
-
-    def run(self) :
-        running = True
-
-        while self.running :
-            sleep(60)
-            now = time.time()
-
-            if (self.last - now > 60) :
-                if not self.timingOut :
-                    self.timingOut = True
-                    self.network._timeoutCheck()
-
-                else :
-                    self.network._timeout()
-
-    def reset(self) :
-        self.timingOut = False
-        self.last = time.time()
-
-    def stop(self) :
-        self.running = False
-"""

@@ -2,10 +2,11 @@
 __title__ = "Mandelbot"
 __version__ = "0.1a"
 __author__ = "Owen Jones"
+__url__ = "https://github.com/owenjones/Mandelbot"
 __license__ = "Apache 2.0"
 __copyright__ = "Copyright 2013 Owen Jones"
 
-from mandelbot import utils, network, features
+from . import utils, network, features
 
 def run() :
     f = utils.flags()
@@ -51,7 +52,7 @@ class Mandelbot(object) :
             call = self.commands[command]
 
         except KeyError :
-            net.reply("[\x02Command Error\x02] Command \"{}\" not registered.".format(command), params)
+            net.reply("[\x02Command Error\x02] Unknown command \"{}\".".format(command), params)
             return
 
         try :

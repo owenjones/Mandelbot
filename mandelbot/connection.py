@@ -19,8 +19,8 @@ _buffer (list)             - contains the messages that are waiting to be sent t
 _closing (bool)             - triggered when the socket is preparing to close
 """
 import socket, ssl, select, time, threading
-from mandelbot import utils
-from mandelbot.exceptions import *
+from . import utils
+from .exceptions import *
 
 class connection(object) :
     sock = None

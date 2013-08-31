@@ -9,7 +9,7 @@ def flags() :
     p = argparse.ArgumentParser(description="runs an instance of the Mandelbot IRC bot")
     p.add_argument("-b", "--build", action="store_true", help="creates a configuration file")
     p.add_argument("-v", "--verbose", action="count", default = 0, help="display running information (-vv for debugging)")
-    p.add_argument("-f", "--features", action="store_true", help="load all features startup")
+    p.add_argument("-f", "--features", action="store_true", help="load all features on startup")
     p.add_argument("-i", "--interactive", action="store_true", help = "run Mandelbot interactively")
     p.add_argument("-c", "--config", dest="config",
                    help="specify a different configuration file to use")
@@ -42,7 +42,7 @@ def logInit(verbosity) :
 
 def log() :
     """Returns the logger object for the bot"""
-    return logging.getLogger()
+    return logging.getLogger("bot")
 
 class host(object) :
 
