@@ -2,49 +2,80 @@
 
 """
 wiki.py - Wikipedia search
-Requires requests (http://docs.python-requests.org/en/latest/)
+
+Requires:
+* requests      - http://docs.python-requests.org/en/latest/
+* BeautifulSoup - http://www.crummy.com/software/BeautifulSoup/
 """
 
-import sys, urllib
-from mandelbot import utils
+import sys, urllib, string
+from .. import utils
+from ..__init__ import __version__, __url__
 
 try :
     from mandelbot.lib import requests
+    from mandelbot.lib.bs4 import BeautifulSoup
 
-except ImportError :
-    utils.log().error("[Feature Error] Required module \"requests\" not installed")
+except ImportError as e :
+    utils.log().error("[Feature Error wiki] A required module is not installed ({})".format(e))
 
 prefix = "http://en.wikipedia.org/wiki/"
-lookup = "http://lookup.dbpedia.org/api/search/KeywordSearch"
-maxLength = 250
+apiurl = "http://en.wikipedia.org/w/api.php"
+uagent = "Mandelbot IRC Bot {} - {}".format(__version__, __url__)
+length = 250
 
 def initalize(bot) :
     bot.registerCommand("wiki", (sys.modules[__name__], "wiki"))
 
 def wiki(obj, flags) :
-    term = flags[0]
+    inp = flags[0]
 
-    if term :
-        p = {"QueryString" : term,
-             "MaxHits"     : 1}
+    if inp :
+        split = inp.rsplit(" ", 1)
 
-        h = {"accept"     : "application/json",
-             "user-agent" : "Mandelbot - https://github.com/owenjones/Mandelbot"}
+        if (len(split) > 1) and (split[1] in string.digits) :
+            term = split[0]
+            offset = int(split[1]) - 1
 
-        r = requests.get(lookup, params=p, headers=h)
+        else :
+            term = inp
+            offset = 0
 
-        try :
-            json = r.json()["results"][0]
-            title = json["label"]
-            description = json["description"]
+        result = search(term, offset)
+        if result :
+            url = prefix + urllib.parse.quote(result.replace(" ", "_"))
+            p = {"action" : "render"}
+            h = {"user-agent" : uagent}
 
-            if len(description) > maxLength :
-                formatted = "{}... {}{}".format(description[:maxLength], prefix, urllib.parse.quote(title.replace(" ", "_"), safe="_"))
+            r = requests.get(url, params=p, headers=h)
+            s = BeautifulSoup(r.text, "html.parser")
+            p = s.findAll("p")[0].getText().strip("\n")
+
+            if len(p) > length :
+                formatted = "{} {}".format(p[:length].rsplit(".", 1)[0], url)
 
             else :
-                formatted = description
+                formatted = p
 
             obj.reply("{}: {}".format(flags[1][0].nick, formatted), flags)
 
-        except IndexError :
+        else :
             obj.reply("{}: No results for \"{}\"".format(flags[1][0].nick, term), flags)
+
+def search(term, offset = 0) :
+    p = {"format" : "json",
+         "action" : "opensearch",
+         "search" : term,
+         "limit"  : (offset + 1)}
+
+    h = {"user-agent" : uagent}
+
+    r = requests.get(apiurl, params=p, headers=h)
+
+    results = r.json()[1]
+
+    try :
+        return results[offset]
+
+    except IndexError :
+        return False
