@@ -3,8 +3,8 @@
 Mandelbot Basic Network Commands
 """
 import sys
-from mandelbot.decorators import owner, user
-from mandelbot import utils, features
+from ..decorators import owner, user
+from .. import utils, features
 
 def initalize(bot) :
     current = sys.modules[__name__]
