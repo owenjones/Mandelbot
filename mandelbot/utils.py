@@ -44,18 +44,6 @@ def log() :
     """Returns the logger object for the bot"""
     return logging.getLogger("bot")
 
-class host(object) :
-
-    def __init__(self, addr) :
-        """Splits a received host string into nickname, username and host"""
-        addr = addr[1:]
-        nsplit = addr.find("!")
-        hsplit = addr.find("@")
-        self.nick = addr[:nsplit] if (nsplit > 0) else addr
-        self.user = addr[(nsplit + 1):hsplit] if (nsplit > 0) else False
-        self.host = addr[(hsplit + 1):] if (hsplit > 0) else addr
-
-
 """
 Password Methods
 Handle encoding and decoding network and user passwords for slightly "safer" storage

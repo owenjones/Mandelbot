@@ -47,20 +47,20 @@ class Mandelbot(object) :
     def registerCommand(self, command, call) :
         self.commands[command] = call
 
-    def triggerCommand(self, net, command, params) :
+    def triggerCommand(self, net, m) :
         try :
-            call = self.commands[command]
+            call = self.commands[m.command]
 
         except KeyError :
-            net.reply("[\x02Command Error\x02] Unknown command \"{}\".".format(command), params)
+            net.reply("[\x02Command Error\x02] Unknown command \"{}\".".format(m.command), m)
             return
 
         try :
-            getattr(call[0], call[1])(net, params)
+            getattr(call[0], call[1])(net, m)
 
         except Exception as e :
-            error = "[\x02Command Error\x02 {}] {}.".format(command, e)
-            net.reply(error, params)
+            error = "[\x02Command Error\x02 {}] {}.".format(m.command, e)
+            net.reply(error, m)
             utils.log().error("[{}]".format(net.config["name"]) + error)
 
     def shutdown(self, message = None) :

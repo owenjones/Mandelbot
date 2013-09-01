@@ -1,13 +1,13 @@
 #Mandelbot
 def owner(commandCall) :
-    def inner(obj, params, *args) :
-        if params[1][0].user == obj.config["owner"] :
-            commandCall(obj, params, *args)
+    def inner(obj, m, *args) :
+        if m.sender.user == obj.config["owner"] :
+            commandCall(obj, m, *args)
     return inner
 
 
 def user(commandCall) :
-    def inner(obj, params, *args) :
-        if params[1][0].user in obj.config["users"] or params[1][0].user == obj.config["owner"] :
-            commandCall(obj, params, *args)
+    def inner(obj, m, *args) :
+        if m.sender.user in obj.config["users"] or m.sender.user == obj.config["owner"] :
+            commandCall(obj, m, *args)
     return inner

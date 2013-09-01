@@ -18,65 +18,67 @@ def initalize(bot) :
     bot.registerCommand("tell", (current, "message"))
 
 @owner
-def quit(obj, flags) :
-    obj.quit(flags[0])
+def quit(obj, m) :
+    obj.quit(m.flags)
 
 @owner
-def shutdown(obj, flags) :
-    obj.shutdown(flags[0])
+def shutdown(obj, m) :
+    obj.shutdown(m.flags)
 
 @user
-def join(obj, flags) :
-    parts = flags[0].split(" ", 1)
+def join(obj, m) :
+    parts = m.flags.split(" ", 1)
     chan = parts[0]
     key = parts[1] if len(parts) > 1 else False
 
     obj.join(chan, key)
 
 @user
-def part(obj, flags) :
-    if flags[0] and flags[0][0] == "#" :
-        parts = flags[0].split(" ", 1)
+def part(obj, m) :
+    if m.flags and m.flags.startswith("#") :
+        parts = m.flags.split(" ", 1)
         chan = parts[0]
         message = parts[1] if len(parts) > 1 else False
 
     else :
-        chan = flags[1][2]
-        message = flags[0]
+        chan = m.target
+        message = m.flags
 
     obj.channels[chan].part(message)
 
 @owner
-def load(obj, flags) :
-    if flags[0] :
-        feature = flags[0].split()
+def load(obj, m) :
+    if m.flags :
+        feature = m.flags.split()
 
         for f in feature :
             try :
                 features.load(obj.bot, f)
 
             except (ImportError, KeyError) :
-                obj.reply("[\x02Feature Error\x02] \"{}\" doesn't exist.".format(f), flags)
+                obj.reply("[\x02Feature Error\x02] \"{}\" doesn't exist.".format(f), m)
 
             except Exception as e :
-               obj.reply("[\x02Feature Error\x02 {}] {}".format(f, e), flags)
+               obj.reply("[\x02Feature Error\x02 {}] {}".format(f, e), m)
 
 @owner
-def run(obj, flags) :
-    reply = eval(flags[0])
-    obj.reply(reply, flags)
+def run(obj, m) :
+    reply = eval(m.flags)
+    obj.reply(reply, m)
 
 @user
-def quiet(obj, flags) :
+def quiet(obj, m) :
     if not obj.isQuiet :
-        obj.reply("Yes, master.", flags)
+        obj.reply("Yes, master.", m)
         obj.isQuiet = True
 
     else :
         obj.isQuiet = False
 
 @user
-def message(obj, flags) :
-    p = flags[0].split(" ", 1)
-    target = flags[1][2] if p[0] == "chan" else p[0]
-    obj.message(target, p[1])
+def message(obj, m) :
+    p = m.flags.split(" ", 1)
+    target = m.target if p[0] == "chan" else p[0]
+
+    if len(p) > 1 :
+        obj.message(target, p[1])

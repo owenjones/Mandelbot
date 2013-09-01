@@ -27,8 +27,8 @@ length = 250
 def initalize(bot) :
     bot.registerCommand("wiki", (sys.modules[__name__], "wiki"))
 
-def wiki(obj, flags) :
-    inp = flags[0]
+def wiki(obj, m) :
+    inp = m.flags
 
     if inp :
         split = inp.rsplit(" ", 1)
@@ -57,10 +57,10 @@ def wiki(obj, flags) :
             else :
                 formatted = p
 
-            obj.reply("{}: {}".format(flags[1][0].nick, formatted), flags)
+            obj.reply("{}: {}".format(m.sender.nick, formatted), m)
 
         else :
-            obj.reply("{}: No results for \"{}\"".format(flags[1][0].nick, term), flags)
+            obj.reply("{}: No results for \"{}\"".format(m.sender.nick, term), m)
 
 def search(term, offset = 0) :
     p = {"format" : "json",

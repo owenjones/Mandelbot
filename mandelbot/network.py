@@ -9,7 +9,7 @@ TODO:
 * Work out better timeout metrics
 """
 import threading, time
-from . import utils, connection, channel
+from . import utils, connection, channel, message
 from .exceptions import *
 
 """
@@ -74,19 +74,19 @@ class network(state) :
         self.bot = bot
         self.config = config
 
-    def event(self, call, params) :
+    def event(self, m) :
         """Triggers the handler for the network event"""
         try :
-            attr = self.events[call]
+            attr = self.events[m.action]
 
         except KeyError :
             return
 
         try :
-            getattr(self, attr)(params)
+            getattr(self, attr)(m)
 
         except Exception as e :
-            utils.log().error("[{}][Builtin Error {}] {}".format(self.config["name"], call, e))
+            utils.log().error("[{}][Builtin Error {}] {}".format(self.config["name"], m.action, e))
 
     def connect(self) :
         """Connects to the IRC network"""
@@ -116,28 +116,9 @@ class network(state) :
     def parse(self, raw) :
         """Parses a received message from the network"""
         self._resetTimeout()
-
-        raw = raw.strip()
-        utils.log().debug("[{}] Received: {}".format(self.config["name"], raw))
-        parts = raw.split(" ", 3)
-        if parts[0] == "PING" :
-            self.event("PING", parts[1])
-
-        elif parts[1] in ("JOIN", "NICK", "PART") :
-            addr = utils.host(parts[0])
-            msg = parts[2][1:] if parts[2][0] == ":" else parts[2]
-            self.event(parts[1], (addr, msg))
-
-        else :
-            addr, cmd, tgt, msg = parts
-            addr = utils.host(addr)
-
-            if tgt[0] != "#" :
-                tgt = tgt if cmd == "MODE" else addr.nick
-
-            msg = msg[1:] if msg[0] is ":" else msg
-
-            self.event(cmd, (addr, cmd, tgt, msg))
+        m = message.parse(raw)
+        utils.log().debug("[{}] Received: {}".format(self.config["name"], m.raw))
+        self.event(m)
 
     def send(self, message) :
         """Sends a message to the network"""
@@ -208,87 +189,85 @@ class network(state) :
         """Sends a notice to a target on the network"""
         self.send("NOTICE {} :{}".format(target, message))
 
-    def reply(self, message, params) :
+    def reply(self, message, m) :
         """Sends a message to the invoker of a command"""
-        self.message(params[1][2], message)
+        self.message(m.target, message)
 
     # Network Events
-    def _ping(self, host) :
+    def _ping(self, m) :
         """PING"""
-        self.send("PONG :{}".format(host[1:]))
+        self.send("PONG :{}".format(m.message))
 
-    def _message(self, params) :
+    def _message(self, m) :
         """When PRIVMSG and NOTICE are received"""
-        msg = params[3]
-
-        if msg.startswith(self.config["command"]) :
-            parts = msg.split(" ", 1)
+        if m.message.startswith(self.config["command"]) :
+            parts = m.message.split(" ", 1)
             cmd = parts[0][len(self.config["command"]):]
             flags = parts[1] if (len(parts) > 1) else False
+            m.commander(cmd, flags)
 
-            self.bot.triggerCommand(self, cmd, (flags, params))
+            self.bot.triggerCommand(self, m)
 
-    def _connected(self, params) :
+    def _connected(self, m) :
         """When the bot has successfully connected"""
         utils.log().info("[{}] Connection established.".format(self.config["name"]))
         self.connected()
         self.identify()
 
-    def _identified(self, params) :
+    def _identified(self, m) :
         """We're now identified"""
         utils.log().info("[{}] Identified.".format(self.config["name"]))
         self.isIdentified = True
 
         # Required if nickname needed to be changed during a reconnect
-        if params[2] != self.config["nickname"] :
+        if m.target != self.config["nickname"] :
             self.ghost()
 
         self.joinChannels()
 
-    def _nickInUse(self, params) :
+    def _nickInUse(self, m) :
         self.nick(self.config["nickname"] + "_")
 
         if self.isIdentified :
             self.ghost()
 
-    def _nickChange(self, params) :
-        if params[0] == self.currentNickname :
-            self.currentNickname == params[2]
+    def _nickChange(self, m) :
+        if m.sender.nick == self.currentNickname :
+            self.currentNickname == m.message
 
-    def _modeChange(self, params) :
+    def _modeChange(self, m) :
         """When a mode is changed"""
-        target = params[2]
-        if target.startswith("#") :
-            #self.channels[target].modeChange(params)
+        if m.target.startswith("#") :
+            #self.channels[m.target].modeChange(m)
             pass
 
-        elif target == self.currentNickname :
-            modes = params[3]
+        elif m.target == self.currentNickname :
+            modes = m.message
             action = "append" if modes[0] == "+" else "remove"
 
-            for m in modes[1:] :
-                if m == "r" and action == "append" :
-                    self._identified(params)
+            for mod in modes[1:] :
+                if mod == "r" and action == "append" :
+                    self._identified(m)
 
-                getattr(self.modes, action)(m)
+                getattr(self.modes, action)(mod)
 
-    def _joined(self, params) :
+    def _joined(self, m) :
         """When somebody joins a channel"""
-        if params[0].nick == self.currentNickname :
-            utils.log().info("[{}] Joined {}.".format(self.config["name"], params[1]))
-            self.channels[params[1].lower()].joined()
+        if m.sender.nick == self.currentNickname :
+            utils.log().info("[{}] Joined {}.".format(self.config["name"], m.message))
+            self.channels[m.message.lower()].joined()
         else :
             #self.channels[params[1].lower()].users[params[2].nick] =
             pass
 
-    def _kicked(self, params) :
+    def _kicked(self, m) :
         """When somebody is kicked from a channel"""
-        kicked = params[3].split(" ", 1)
+        kicked = m.message.split(" ", 1)
         if kicked[0] == self.currentNickname :
             utils.log().info("[{}] Kicked from {}. ({})".format(self.config["name"],
-                                                                params[2],
+                                                                m.target,
                                                                 kicked[1][1:]))
-            self.channels[params[2].lower()].join()
+            self.channels[m.target.lower()].join()
 
     # Timeout Handling
     def _timer(self, time, call, *args) :
