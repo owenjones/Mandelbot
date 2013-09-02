@@ -1,5 +1,7 @@
 # Mandelbot
-
+"""
+Message Parsing
+"""
 def parse(raw) :
     return Message(raw)
 
@@ -14,7 +16,7 @@ class Message(object) :
     message = None
 
     command = None
-    parameters = None
+    flags = None
 
     def __init__(self, raw) :
         """Splits a received message into its relevant parts"""
@@ -40,12 +42,17 @@ class Message(object) :
             return
 
     def tidy(self, m) :
+        """Strips the inital colon from the message, if it's present"""
         return m[1:] if m[0] is ":" else m
 
     def commander(self, command, flags) :
+        """Adds the command data to the message object"""
         self.command = command
         self.flags = flags
 
+"""
+Host String Model
+"""
 class host(object) :
     nick = None
     user = None
