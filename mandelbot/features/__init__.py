@@ -2,11 +2,16 @@
 """
 Mandelbot Features
 """
-from mandelbot import utils
+from .. import utils
 import os, sys, imp, importlib
 
-features = [feature.split(".")[0] for feature in os.listdir(os.path.abspath(__file__)[:-11])
-            if feature.endswith(".py") and feature != "__init__.py"]
+features = []
+
+def listFeatures() :
+    """Lists all the features in the features directory"""
+    global features
+    features = [feature.split(".")[0] for feature in os.listdir(os.path.abspath(__file__)[:-11])
+                if feature.endswith(".py") and feature != "__init__.py"]
 
 def load(bot, feature) :
     """Loads a single Mandelbot feature"""
@@ -37,3 +42,5 @@ def initalize(bot, feature) :
 
     except Exception as e :
         utils.log().error("[Feature Error {}] Error Loading Feature {}".format(feature, e))
+
+listFeatures()
