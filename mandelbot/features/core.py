@@ -63,7 +63,12 @@ def load(obj, m) :
 
 @owner
 def run(obj, m) :
-    reply = eval(m.flags)
+    try :
+        reply = eval(m.flags)
+
+    except Exception as e :
+        reply = "Bro, that's fucked up: {}".format(e)
+
     obj.reply(reply, m)
 
 @user
