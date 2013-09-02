@@ -52,12 +52,9 @@ def wiki(obj, m) :
             p = s.findAll("p")[0].getText().strip("\n")
 
             if len(p) > length :
-                formatted = "{} {}".format(p[:length].rsplit(".", 1)[0], url)
+                p = p[:length].rsplit(".", 1)[0]
 
-            else :
-                formatted = p
-
-            obj.reply("{}: {}".format(m.sender.nick, formatted), m)
+            obj.reply("{}: {} {}".format(m.sender.nick, p, url), m)
 
         else :
             obj.reply("{}: No results for \"{}\"".format(m.sender.nick, term), m)
