@@ -15,12 +15,12 @@ def initalize(bot) :
 
 def fetcher() :
     global score, thread
-    
 
-def howzat(obj, flags) :
+
+def howzat(obj, m) :
     global score, thread
-    if flags[0] and flags[0].lower in ("stop", "exit") :
-        scorethread.stop()
+    if m.flags and m.flags.lower in ("stop", "exit") :
+        thread.stop()
         return
 
     if score :
@@ -29,4 +29,4 @@ def howzat(obj, flags) :
     else :
         reply = "[Howzat!] No Scores Recorded"
 
-    obj.reply(reply, flags)
+    obj.reply(reply, m)
