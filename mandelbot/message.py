@@ -54,6 +54,7 @@ class Message(object) :
 Host String Model
 """
 class host(object) :
+    raw = None
     nick = None
     user = None
     host = None
@@ -61,6 +62,7 @@ class host(object) :
     def __init__(self, addr) :
         """Splits a received host string into nickname, username and host"""
         addr = addr[1:]
+        self.raw = addr
         nsplit = addr.find("!")
         hsplit = addr.find("@")
         self.nick = addr[:nsplit] if (nsplit > 0) else addr
