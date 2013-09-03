@@ -12,6 +12,7 @@ def initalize(bot) :
     bot.registerCommand("shutdown", (current, "shutdown"))
     bot.registerCommand("join", (current, "join"))
     bot.registerCommand("part", (current, "part"))
+    bot.registerCommand("cycle", (current, "cycle"))
     bot.registerCommand("load", (current, "load"))
     bot.registerCommand("!", (current, "run"))
     bot.registerCommand("quiet", (current, "quiet"))
@@ -45,6 +46,13 @@ def part(obj, m) :
         message = m.flags
 
     obj.channels[chan].part(message)
+
+@user
+def cycle(obj, m) :
+    chan = m.target
+    key = obj.channels[chan].key
+    obj.channels[chan].part("Boing")
+    obj.join(chan, key)
 
 @owner
 def load(obj, m) :
