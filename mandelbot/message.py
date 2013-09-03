@@ -3,12 +3,12 @@
 Message Parsing
 """
 def parse(raw) :
-    return Message(raw)
+    return message(raw)
 
 """
 Message Model
 """
-class Message(object) :
+class message(object) :
     raw = None
     action = None
     sender = None
