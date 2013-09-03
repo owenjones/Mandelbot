@@ -26,7 +26,9 @@ def start(obj, m) :
 	timer()
 
 def kitty(obj, m) :
-	noise(False)
+	global network, target
+	if network and target :
+		noise(False)
 
 def noise(reset=True) :
 	global noises, target, network
@@ -38,8 +40,10 @@ def noise(reset=True) :
 		timer()
 	
 def timer() :
-	var = random.randint(0, 240) + 60
+	var = 90 + random.randint(0, 240)
 	global t
+	if t :
+		t.cancel()
 	t = Timer(var, noise)
 	t.start()
 
