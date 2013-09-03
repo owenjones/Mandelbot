@@ -13,8 +13,8 @@ from .. import utils
 from ..__init__ import __version__, __url__
 
 try :
-    from mandelbot.lib import requests
-    from mandelbot.lib.bs4 import BeautifulSoup
+    from ..lib import requests
+    from ..lib import bs4
 
 except ImportError as e :
     utils.log().error("[Feature Error wiki] A required module is not installed ({})".format(e))
@@ -48,11 +48,11 @@ def wiki(obj, m) :
             h = {"user-agent" : uagent}
 
             r = requests.get(url, params=p, headers=h)
-            s = BeautifulSoup(r.text, "html.parser")
-            p = s.findAll("p")[0].getText().strip("\n")
+            s = bs4.BeautifulSoup(r.text)
+            p = s.findAll("p", recursive=False)[0].getText()
 
-            if len(p) > length :
-                p = p[:length].rsplit(".", 1)[0]
+            if len(p) + len(url) > length :
+                p = p[:(length + len(url))].rsplit(".", 1)[0]
 
             obj.reply("{}: {} {}".format(m.sender.nick, p, url), m)
 
