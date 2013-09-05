@@ -32,13 +32,13 @@ class message(object) :
 
         elif parts[1] in ("JOIN", "NICK", "PART") :
             self.action = parts[1]
-            self.sender = user.host(parts[0])
+            self.sender = host(parts[0])
             self.message = self.tidy(parts[2])
             return
 
         else :
             sender, self.action, target, message = parts
-            self.sender = user.host(sender)
+            self.sender = host(sender)
             self.target = target if (target.startswith("#") or self.action == "MODE") else self.sender.nick
             self.message = self.tidy(message)
             return
