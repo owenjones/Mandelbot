@@ -9,7 +9,7 @@ TODO:
 * Work out better timeout metrics
 """
 import threading, time
-from . import utils, connection, channel, message
+from . import utils, connection, channel, message, user
 from .exceptions import *
 
 """
@@ -55,6 +55,7 @@ class network(state) :
     messages = []
     modes = []
     channels = {}
+    users = None
     config = {}
 
     events = {"PING"    : "_ping",
@@ -73,6 +74,7 @@ class network(state) :
     def __init__(self, config, bot) :
         self.bot = bot
         self.config = config
+        self.users = user.userList()
 
     def event(self, m) :
         """Triggers the handler for the network event"""

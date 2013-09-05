@@ -9,7 +9,6 @@ class channel(object) :
     key = None
 
     channelModes = []
-    users = {}
 
     hasJoined = False
     isQuiet = False
@@ -31,10 +30,3 @@ class channel(object) :
         c = "PART {} {}".format(self.name, message) if message else "PART {}".format(self.name)
         self.network.send(c)
         self.hasJoined = False
-
-    def isOp(self, nick = False) :
-        matched = [m for m in self.userModes if m in ("o", "a", "q", "h")]
-        return True if matched else False
-
-    def hasVoice(self) :
-        return True if "v" in self.userModes else False

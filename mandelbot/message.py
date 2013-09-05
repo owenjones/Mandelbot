@@ -1,4 +1,6 @@
 # Mandelbot
+from .user import host
+
 """
 Message Parsing
 """
@@ -30,13 +32,13 @@ class message(object) :
 
         elif parts[1] in ("JOIN", "NICK", "PART") :
             self.action = parts[1]
-            self.sender = host(parts[0])
+            self.sender = user.host(parts[0])
             self.message = self.tidy(parts[2])
             return
 
         else :
             sender, self.action, target, message = parts
-            self.sender = host(sender)
+            self.sender = user.host(sender)
             self.target = target if (target.startswith("#") or self.action == "MODE") else self.sender.nick
             self.message = self.tidy(message)
             return
@@ -49,22 +51,3 @@ class message(object) :
         """Adds the command data to the message object"""
         self.command = command
         self.flags = flags
-
-"""
-Host String Model
-"""
-class host(object) :
-    raw = None
-    nick = None
-    user = None
-    host = None
-
-    def __init__(self, addr) :
-        """Splits a received host string into nickname, username and host"""
-        addr = addr[1:]
-        self.raw = addr
-        nsplit = addr.find("!")
-        hsplit = addr.find("@")
-        self.nick = addr[:nsplit] if (nsplit > 0) else addr
-        self.user = addr[(nsplit + 1):hsplit] if (nsplit > 0) else False
-        self.host = addr[(hsplit + 1):] if (hsplit > 0) else addr
