@@ -1,6 +1,7 @@
 *.py[cod]
 .DS_Store
 config.json
+*__pycache__*
 
 # C extensions
 *.so

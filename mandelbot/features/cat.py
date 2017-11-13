@@ -13,9 +13,9 @@ noises = ["Meow", "Mrow", "Prrrrr", "Meow", "Meow", "Mrow", "Prrrrr", "Prrrrr", 
 network = None
 
 def initalize(bot) :
-	bot.registerCommand("badkitty", (sys.modules[__name__], "stop"))
+	#bot.registerCommand("badkitty", (sys.modules[__name__], "stop"))
 	bot.registerCommand("kitty", (sys.modules[__name__], "kitty"))
-	bot.registerCommand("goodkitty", (sys.modules[__name__], "start"))
+	#bot.registerCommand("goodkitty", (sys.modules[__name__], "start"))
 
 @user
 def start(obj, m) :
@@ -27,6 +27,7 @@ def start(obj, m) :
 
 def kitty(obj, m) :
 	global network, target
+	if not network : network = m.network
 	if network and target :
 		noise(False)
 
@@ -35,10 +36,10 @@ def noise(reset=True) :
 	n = random.randint(0, len(noises) - 1)
 	n = noises[n]
 	network.message(target, n)
-	
+
 	if reset :
 		timer()
-	
+
 def timer() :
 	var = 90 + random.randint(0, 240)
 	global t
